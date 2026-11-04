@@ -123,7 +123,7 @@ public final class AppEnv {
         }
 
         String jdbcUrl = String.format(
-                "jdbc:mysql://%s:%d/%s?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC"
+                "jdbc:mysql://%s:%d/%s?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai"
                         + "&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull"
                         + "&tinyInt1isBit=false",
                 host, port, database);

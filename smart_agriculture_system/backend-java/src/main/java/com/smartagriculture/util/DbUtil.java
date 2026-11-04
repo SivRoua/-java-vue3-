@@ -12,8 +12,12 @@ public final class DbUtil {
         return timestamp != null ? timestamp.toLocalDateTime() : null;
     }
 
+    /**
+     * 写入/查询参数统一 +8h 补偿：connector 与云端 MySQL 的时区换算会使
+     * 落库值 = 参数 - 8h，补偿后存储值、范围查询与回读显示均等于真实本地时间。
+     */
     public static Timestamp toTimestamp(LocalDateTime value) {
-        return value != null ? Timestamp.valueOf(value) : null;
+        return value != null ? Timestamp.valueOf(value.plusHours(8)) : null;
     }
 
     public static Double nullableDouble(java.sql.ResultSet rs, String column) throws java.sql.SQLException {
