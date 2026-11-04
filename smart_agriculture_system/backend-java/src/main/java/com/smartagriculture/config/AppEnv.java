@@ -12,7 +12,7 @@ import java.util.Map;
 
 /**
  * 环境配置加载器：优先读取系统环境变量，其次读取 .env 文件，最后使用默认值。
- * 与原 Python 后端共用 backend/.env，避免重复维护数据库连接信息。
+ * .env 位于 backend-java/.env（含数据库连接信息，已被 .gitignore 排除）。
  */
 public final class AppEnv {
 
@@ -29,9 +29,8 @@ public final class AppEnv {
         String userDir = System.getProperty("user.dir", ".");
         List<Path> candidates = List.of(
                 Paths.get(userDir, ".env"),
-                Paths.get(userDir, "..", "backend", ".env"),
-                Paths.get(userDir, "backend", ".env"),
-                Paths.get(userDir, "..", "..", "backend", ".env")
+                Paths.get(userDir, "backend-java", ".env"),
+                Paths.get(userDir, "..", "backend-java", ".env")
         );
         for (Path candidate : candidates) {
             if (!Files.isRegularFile(candidate)) {

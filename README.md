@@ -19,8 +19,9 @@
 | 新增工程 | `smart_agriculture_system/backend-java/`（独立 Maven 工程） |
 | 技术栈 | Spring Boot 3.2.5 + `spring-boot-starter-web` + `spring-boot-starter-jdbc` + HikariCP + `mysql-connector-j` + 自研 JWT / PBKDF2 |
 | 运行端口 | **5000**（与原 Flask 后端一致，前端 Vite 代理无需任何改动） |
-| 数据库 | 沿用云端 MySQL，读取 `backend/.env` 中的 `DATABASE_URL`，Java 侧解析为 JDBC URL |
-| 未改动 | `frontend/`、`backend/`（原 Flask 后端）、`kv_wsn/` 均保持原样 |
+| 数据库 | 沿用云端 MySQL，读取 `backend-java/.env` 中的 `DATABASE_URL`，Java 侧解析为 JDBC URL |
+| 后端唯一实现 | Python Flask 后端（`backend/`）已按计划整体移除，Java 为唯一后端 |
+| 未改动 | `frontend/`、`kv_wsn/` 均保持原样 |
 | 交付物 | 可执行包 `backend-java/target/smart-agriculture-backend.jar` |
 
 **已对齐的原有关键行为**
@@ -44,7 +45,7 @@
 
 1. 拉取本仓库，阅读本 README，确认自己的分工。
 2. **不要提交**：`.env`、PPT、视频、压缩包、备份/失败目录、`node_modules`、`.venv`、`target`、日志（`.gitignore` 已覆盖）。
-3. 本地启动前确认 5000 端口空闲（Flask 与 Java 后端**只能同时运行一个**）。
+3. 本地启动前确认 5000 端口空闲（当前只有 Java 后端占用该端口）。
 
 ### 2.2 分工清单
 
@@ -52,7 +53,7 @@
 | --- | --- |
 | 前端 | 无需改动现有页面；新增页面严格复用 `src/api/*` 与 `src/utils/request.js` 的约定（`{"error": ...}` / `{"message": ...}`、列表直接返回数组）。改动前先确认接口是否已在 Java 后端实现。 |
 | Java 后端 | 在 `backend-java/` 内继续开发；补齐单元/集成测试；新增接口必须先更新本 README 的「接口与架构」再实现。 |
-| Python 后端（原实现） | 作为**行为对照与回滚方案**保留，不做功能改动；如确需修复线上问题，同步在 README 记录差异。 |
+| Python 后端（已移除） | 代码已删除，仅保留在 Git 历史（提交 `f8b03f2`）供行为对照；不再维护、不新增功能。 |
 | 硬件 / 联调 | 排查虚拟平台 `Connection reset`（平台侧配置、端口占用、并发连接、协议实现）；维护设备地址表（见 3.4）。 |
 | 测试 / 文档 | 按「接口回归清单」补充用例；负责演示材料、部署文档与答辩素材（**不进仓库**）。 |
 
@@ -76,13 +77,9 @@
 ```mermaid
 flowchart LR
     U[浏览器 / 移动端] -->|HTTP /api| FE[Vue3 前端<br/>Vite 5173]
-    FE -->|Vite 代理| BE{后端 5000}
-    BE -->|Spring Boot| J[backend-java]
-    BE -->|Flask 对照实现| P[backend]
+    FE -->|Vite 代理| J[Spring Boot 后端<br/>backend-java :5000]
     J --> DB[(MySQL 云端)]
-    P --> DB
     J -->|TCP 4000| W[WSN 虚拟硬件平台<br/>192.168.12.1]
-    P -->|TCP 4000| W
 ```
 
 ### 3.2 技术栈
@@ -90,8 +87,7 @@ flowchart LR
 | 层 | 技术 |
 | --- | --- |
 | 前端 | Vue 3 + Vite + Element Plus + Pinia + ECharts + Axios |
-| 后端（交付） | Java 17 目标字节码 / Spring Boot 3.2.5 / JdbcTemplate / HikariCP / 自研 JWT（HS256） |
-| 后端（对照） | Python 3 + Flask + Flask-JWT-Extended + SQLAlchemy |
+| 后端（唯一实现） | Java 17 目标字节码 / Spring Boot 3.2.5 / JdbcTemplate / HikariCP / 自研 JWT（HS256） |
 | 数据库 | MySQL（`users`、`sensor_data`、`device_status`、`operation_logs`、`threshold_settings`） |
 | 硬件通信 | TCP Socket，WSN 自定义帧协议 |
 
@@ -108,7 +104,7 @@ flowchart TB
     SEC[security 层<br/>JwtUtil / PasswordHasher / AuthInterceptor] --> C
 ```
 
-- **controller**：只做参数校验、调用服务、组装响应，保持原 Flask 的字段与状态码。
+- **controller**：只做参数校验、调用服务、组装响应，保持原接口的字段与状态码。
 - **service**：业务编排；`Initializer` 负责建表与种子数据，`BackgroundTasks` 负责启动异步线程。
 - **repository**：全部使用 `JdbcTemplate`，不引入 JPA/Hibernate，避免运行环境兼容风险。
 - **device**：`WsnClient` 只负责协议字节与 Socket 读写；`DeviceManager` 负责状态与缓存；`AutoControlManager` 负责阈值控制循环。
@@ -149,7 +145,7 @@ flowchart TB
 
 | 阶段 | 内容 | 状态 |
 | --- | --- | --- |
-| P0 | Java Spring Boot 后端等功权重构（接口、JWT、协议、定时任务、自动控制） | ✅ 已完成 |
+| P0 | Java Spring Boot 后端等功权重构（接口、JWT、协议、定时任务、自动控制）；移除 Python Flask 后端 | ✅ 已完成 |
 | P1 | 硬件联调：虚拟平台 `Connection reset` 定位与修复，确认真实设备/模拟器行为 | 🔄 进行中 |
 | P2 | 质量保障：接口回归脚本、关键服务单元测试、异常路径覆盖 | ⬜ 待开始 |
 | P3 | 部署交付：配置外置（`.env` 不入库）、Docker/启动脚本、日志与健康检查 | ⬜ 待开始 |
@@ -157,9 +153,9 @@ flowchart TB
 
 **当前约束（需团队确认后才可调整）**
 
-1. 前端与 Python 后端在本阶段不做功能改动；新后端能力只在 `backend-java/` 内实现。
+1. 前端在本阶段不做功能改动；Python Flask 后端已移除，Java 后端是唯一实现，新能力只在 `backend-java/` 内开发。
 2. 任何接口新增/字段变更，必须先改 README 的接口表，再同步前端同学。
-3. 后端端口固定 5000；切换 Flask / Spring Boot 时需先停另一个进程。
+3. 后端端口固定 5000；启动前需确认端口未被占用。
 
 ---
 
@@ -177,17 +173,15 @@ flowchart TB
 ├── 智慧农业.ivms
 └── smart_agriculture_system/               # 主工程
     ├── frontend/                           # Vue3 + Vite（5173，代理 /api → 5000）
-    ├── backend/                            # Python Flask 后端（对照/回滚）
-    │   ├── app.py / routes/ / services/ / models/ / device/ / config/
-    │   └── .env                            # 数据库与密钥（已被忽略，勿提交）
-    ├── backend-java/                       # Java Spring Boot 后端（交付实现）
+    ├── backend-java/                       # Java Spring Boot 后端（唯一后端实现）
     │   ├── pom.xml
+    │   ├── .env                            # 数据库与密钥（已被忽略，勿提交）
     │   └── src/main/java/com/smartagriculture/
     │       ├── controller/  service/  repository/  device/
     │       ├── security/  config/  model/  util/
     │       └── SmartAgricultureApplication.java
     ├── kv_wsn/                             # WSN 虚拟平台参考实现
-    └── README.md                           # 原工程说明
+    └── README.md                           # 原工程说明（后端已改为 Java）
 ```
 
 **命名与提交约定**
@@ -209,9 +203,9 @@ npm install        # 或 pnpm install
 npm run dev        # http://localhost:5173，/api 代理到 5000
 ```
 
-### 6.2 Java 后端（当前交付实现）
+### 6.2 Java 后端（唯一后端实现）
 
-前置：JDK 17+（本机已验证 JDK 26）与 Maven；`smart_agriculture_system/backend/.env` 存在且可读。
+前置：JDK 17+（本机已验证 JDK 26）与 Maven；`smart_agriculture_system/backend-java/.env` 存在且可读（不入库，向负责人获取）。
 
 ```powershell
 cd smart_agriculture_system/backend-java
@@ -224,16 +218,6 @@ java -jar target/smart-agriculture-backend.jar
 - 日志：`backend-java/logs/smart_agriculture.log`
 - 启动时会自动 `CREATE TABLE IF NOT EXISTS` 并确保 `admin` 账号存在
 
-### 6.3 Python 后端（对照 / 回滚）
-
-```bash
-cd smart_agriculture_system/backend
-pip install -r requirements.txt
-python app.py
-```
-
-> Flask 与 Spring Boot 均监听 5000，**不要同时启动**。
-
 ---
 
 ## 7. 变更记录
@@ -244,5 +228,6 @@ python app.py
 | 2026-11-04 | 新增根目录 README：架构设计、改动计划、分工、工程组织与协作规范 | Agent |
 | 2026-11-04 | Java Spring Boot 后端 P0 完成并实测（端口 5000，接口契约不变；`Connection reset` 已确认属虚拟平台侧） | Agent |
 | 2026-11-04 | 主分支由 `master` 调整为 `main`，并合并远端初始提交；团队后续默认在 `main` 协作 | Agent |
+| 2026-11-04 | 移除 Python Flask 后端（`smart_agriculture_system/backend/`），`.env` 迁移至 `backend-java/.env`；Java 后端成为唯一实现，并完成构建与接口验证 | Agent |
 
 > 变更记录只增不删；每次计划调整都要在此追加一行，并注明受影响的阶段（P0–P4）。
