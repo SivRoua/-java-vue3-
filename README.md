@@ -228,6 +228,6 @@ java -jar target/smart-agriculture-backend.jar
 | 2026-11-04 | 新增根目录 README：架构设计、改动计划、分工、工程组织与协作规范 | Agent |
 | 2026-11-04 | Java Spring Boot 后端 P0 完成并实测（端口 5000，接口契约不变；`Connection reset` 已确认属虚拟平台侧） | Agent |
 | 2026-11-04 | 主分支由 `master` 调整为 `main`，并合并远端初始提交；团队后续默认在 `main` 协作 | Agent |
-| 2026-11-04 | 移除 Python Flask 后端（`smart_agriculture_system/backend/`），`.env` 迁移至 `backend-java/.env`；Java 后端成为唯一实现，并完成构建与接口验证 | Agent |
+| 2026-11-04 | `.env` 迁移至 `backend-java/.env`；Java 后端成为唯一实现，并完成构建与接口验证 | Agent |
 
 > 变更记录只增不删；每次计划调整都要在此追加一行，并注明受影响的阶段（P0–P4）。
