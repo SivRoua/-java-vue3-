@@ -2,7 +2,7 @@
 
 > **仓库根目录**：`基于python及vue的智能农业管理系统/`
 > **主工程目录**：`smart_agriculture_system/`
-> **Git 分支约定**：`master`（首个可用提交已建立，后续功能开发请拉分支）
+> **Git 分支约定**：`main`（默认主分支，后续功能开发请拉分支）
 
 本项目是一套"前端 Vue3 + 后端（Python Flask / Java Spring Boot 双实现）+ WSN 虚拟硬件控制器"的智能农业管理系统，覆盖环境监测、设备控制、历史数据、告警与自动控制、用户与权限管理等能力。
 
@@ -194,7 +194,7 @@ flowchart TB
 
 - Java 包名统一 `com.smartagriculture.*`；类名按分层后缀（`*Controller` / `*Service` / `*Repository` / `*Manager`）。
 - 提交信息建议 `类型(模块): 说明`，类型取 `feat|fix|refactor|docs|test|chore`，例如 `feat(device): 增加设备状态推送`。
-- 分支模型（轻量）：`master` 保持可运行；功能分支 `feat/xxx`、修复分支 `fix/xxx`；合并前至少 1 人 Review。
+- 分支模型（轻量）：`main` 保持可运行；功能分支 `feat/xxx`、修复分支 `fix/xxx`；合并前至少 1 人 Review。
 - 计划/架构类改动走 `docs:` 提交，并只改 README 与文档，不夹带功能代码。
 
 ---
@@ -243,5 +243,6 @@ python app.py
 | 2026-11-04 | 初始化 Git 仓库；新增 `.gitignore`（忽略 PPT、视频、压缩包、备份/失败目录、虚拟环境、构建产物、`.env`、日志） | Agent |
 | 2026-11-04 | 新增根目录 README：架构设计、改动计划、分工、工程组织与协作规范 | Agent |
 | 2026-11-04 | Java Spring Boot 后端 P0 完成并实测（端口 5000，接口契约不变；`Connection reset` 已确认属虚拟平台侧） | Agent |
+| 2026-11-04 | 主分支由 `master` 调整为 `main`，并合并远端初始提交；团队后续默认在 `main` 协作 | Agent |
 
 > 变更记录只增不删；每次计划调整都要在此追加一行，并注明受影响的阶段（P0–P4）。
