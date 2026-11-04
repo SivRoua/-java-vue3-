@@ -128,7 +128,7 @@ const toggleSidebar = () => {
 
 // 处理个人信息
 const handleProfile = () => {
-  // TODO: 实现个人信息功能
+  router.push('/profile')
 }
 
 // 预加载关键图标

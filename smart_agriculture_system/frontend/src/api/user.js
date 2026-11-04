@@ -12,6 +12,16 @@ export function login(data) {
   })
 }
 
+export function getUserProfile() {
+  return request({
+    url: '/api/auth/profile',
+    method: 'get'
+  }).catch(error => {
+    console.error('Profile API error:', error)
+    throw error
+  })
+}
+
 export function register(data) {
   return request({
     url: '/api/auth/register',

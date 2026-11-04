@@ -49,6 +49,12 @@ const routes = [
         }
       },
       {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('@/views/profile/index.vue'),
+        meta: { title: '个人信息', requiresAuth: true }
+      },
+      {
         path: 'history',
         name: 'History',
         component: () => import('@/components/HistoryData.vue'),
