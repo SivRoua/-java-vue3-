@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- 叶子形状 -->
+  <path d="M64 16
+           C 64 16, 96 48, 96 80
+           C 96 97.673112, 81.673112 112, 64 112
+           C 46.326888 112, 32 97.673112, 32 80
+           C 32 48, 64 16, 64 16 Z"
+        fill="#4CAF50"/>
+  
+  <!-- 茎 -->
+  <rect x="60" y="80" width="8" height="32" fill="#8BC34A"/>
+  
+  <!-- 水滴 -->
+  <circle cx="64" cy="64" r="8" fill="#2196F3" opacity="0.7"/>
+</svg> 

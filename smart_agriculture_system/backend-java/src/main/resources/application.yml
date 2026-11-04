@@ -1,0 +1,16 @@
+server:
+  port: 5000
+
+spring:
+  application:
+    name: smart-agriculture-backend
+  main:
+    banner-mode: off
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+logging:
+  level:
+    root: INFO
+    com.smartagriculture: INFO

@@ -1,0 +1,28 @@
+{
+    "include": [
+        "backend"
+    ],
+    "exclude": [
+        "**/__pycache__",
+        "**/node_modules",
+        "**/.venv"
+    ],
+    "pythonVersion": "3.12",
+    "pythonPlatform": "Windows",
+    "venvPath": "C:\\Users\\30106\\anaconda3",
+    "venv": "base",
+    "executionEnvironments": [
+        {
+            "root": "backend",
+            "pythonVersion": "3.12",
+            "pythonPlatform": "Windows",
+            "extraPaths": [
+                "C:\\Users\\30106\\anaconda3\\Lib\\site-packages"
+            ]
+        }
+    ],
+    "typeCheckingMode": "basic",
+    "reportMissingImports": "warning",
+    "reportMissingTypeStubs": false
+}
+

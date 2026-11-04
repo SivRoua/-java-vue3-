@@ -1,0 +1,139 @@
+/* 全局样式变量 */
+
+// 主题色
+$primary-color: #409EFF;
+$success-color: #67C23A;
+$warning-color: #E6A23C;
+$danger-color: #F56C6C;
+$info-color: #909399;
+
+// 背景色
+$bg-color: #f5f7fa;
+$header-bg-color: #fff;
+$sidebar-bg-color: #304156;
+$sidebar-dark-bg-color: #263445;
+
+// 文本色
+$text-primary: #303133;
+$text-regular: #606266;
+$text-secondary: #909399;
+$text-placeholder: #C0C4CC;
+
+// 边框色
+$border-color: #DCDFE6;
+$border-light: #E4E7ED;
+$border-lighter: #EBEEF5;
+
+// 阴影
+$box-shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+$box-shadow-base: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+$box-shadow-dark: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .12);
+
+// 3D效果阴影
+$shadow-3d-light: 0 5px 15px rgba(0, 0, 0, 0.1);
+$shadow-3d-medium: 0 8px 20px rgba(0, 0, 0, 0.15);
+$shadow-3d-dark: 0 12px 28px rgba(0, 0, 0, 0.2);
+
+// 字体
+$font-family: 'Microsoft YaHei', Arial, sans-serif;
+$font-size-base: 14px;
+$font-size-small: 13px;
+$font-size-medium: 16px;
+$font-size-large: 18px;
+$font-size-huge: 22px;
+
+// 圆角
+$border-radius-small: 2px;
+$border-radius-base: 4px;
+$border-radius-medium: 8px;
+$border-radius-large: 12px;
+
+// 间距
+$spacing-mini: 4px;
+$spacing-small: 8px;
+$spacing-base: 16px;
+$spacing-large: 24px;
+$spacing-huge: 32px;
+
+// 动画时间
+$transition-time-fast: 0.2s;
+$transition-time-base: 0.3s;
+$transition-time-slow: 0.5s;
+
+// 动画曲线
+$ease-in-out: cubic-bezier(0.645, 0.045, 0.355, 1);
+$ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+$ease-in: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+$ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+// 布局尺寸
+$header-height: 60px;
+$sidebar-width: 200px;
+$sidebar-collapse-width: 64px;
+
+// 混合器
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin icon-3d {
+  transform-style: preserve-3d;
+  perspective: 500px;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.15));
+  transition: all $transition-time-base $ease-out;
+  
+  &:hover {
+    transform: translateZ(10px);
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2));
+  }
+}
+
+@mixin card-3d {
+  transition: all $transition-time-base $ease-out;
+  box-shadow: $box-shadow-light;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  
+  &:hover {
+    transform: translateY(-5px) translateZ(0);
+    box-shadow: $shadow-3d-medium;
+  }
+}
+
+@mixin button-3d {
+  position: relative;
+  transition: all $transition-time-base $ease-out;
+  transform: translateZ(0);
+  overflow: hidden;
+  
+  &:hover {
+    transform: translateY(-2px) translateZ(0);
+    box-shadow: $shadow-3d-light;
+  }
+  
+  &:active {
+    transform: translateY(0) translateZ(0);
+    box-shadow: $box-shadow-base;
+  }
+}
+
+// 断点
+$screen-xs: 480px;
+$screen-sm: 768px;
+$screen-md: 992px;
+$screen-lg: 1200px;
+$screen-xl: 1920px;
