@@ -39,13 +39,13 @@ public class HistoryController {
             @RequestParam(name = "end_date", required = false) String endDate,
             @RequestParam(name = "metric", required = false) String metric) {
         try {
-            LocalDateTime start = startDate != null ? parseDateTime(startDate) : LocalDateTime.now(ZoneOffset.UTC).minusDays(1);
-            LocalDateTime end = endDate != null ? parseDateTime(endDate) : LocalDateTime.now(ZoneOffset.UTC);
+            LocalDateTime start = startDate != null ? parseDateTime(startDate) : LocalDateTime.now().minusDays(1);
+            LocalDateTime end = endDate != null ? parseDateTime(endDate) : LocalDateTime.now();
             if (start == null) {
-                start = LocalDateTime.now(ZoneOffset.UTC).minusDays(1);
+                start = LocalDateTime.now().minusDays(1);
             }
             if (end == null) {
-                end = LocalDateTime.now(ZoneOffset.UTC);
+                end = LocalDateTime.now();
             }
             List<Map<String, Object>> data = new ArrayList<>();
             for (SensorData record : sensorDataRepository.findBetween(start, end)) {
@@ -97,13 +97,13 @@ public class HistoryController {
             @RequestParam(name = "page", defaultValue = "1") int page,
             @RequestParam(name = "page_size", defaultValue = "20") int pageSize) {
         try {
-            LocalDateTime start = startTime != null ? parseDateTime(startTime) : LocalDateTime.now(ZoneOffset.UTC).minusDays(7);
-            LocalDateTime end = endTime != null ? parseDateTime(endTime) : LocalDateTime.now(ZoneOffset.UTC);
+            LocalDateTime start = startTime != null ? parseDateTime(startTime) : LocalDateTime.now().minusDays(7);
+            LocalDateTime end = endTime != null ? parseDateTime(endTime) : LocalDateTime.now();
             if (start == null) {
-                start = LocalDateTime.now(ZoneOffset.UTC).minusDays(7);
+                start = LocalDateTime.now().minusDays(7);
             }
             if (end == null) {
-                end = LocalDateTime.now(ZoneOffset.UTC);
+                end = LocalDateTime.now();
             }
             long total = sensorDataRepository.countBetween(start, end);
             int offset = (page - 1) * pageSize;
@@ -139,7 +139,7 @@ public class HistoryController {
             }
             if (text.endsWith("Z") || text.contains("+") || text.lastIndexOf('-') > 7) {
                 try {
-                    return OffsetDateTime.parse(text).withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
+                    return OffsetDateTime.parse(text).withOffsetSameInstant(ZoneOffset.ofHours(8)).toLocalDateTime();
                 } catch (DateTimeParseException ignored) {
                     // 继续尝试本地时间格式
                 }

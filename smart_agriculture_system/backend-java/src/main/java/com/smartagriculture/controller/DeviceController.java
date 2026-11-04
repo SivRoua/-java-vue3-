@@ -200,7 +200,7 @@ public class DeviceController {
                     if (realtimeData != null && !realtimeData.isEmpty()) {
                         log.info("成功获取实时传感器数据");
                         try {
-                            sensorDataRepository.insert(SensorData.of(realtimeData, LocalDateTime.now(ZoneOffset.UTC)));
+                            sensorDataRepository.insert(SensorData.of(realtimeData, LocalDateTime.now()));
                         } catch (Exception e) {
                             log.warn("保存实时传感器数据失败: {}", e.getMessage());
                         }

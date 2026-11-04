@@ -52,7 +52,7 @@ public class RootController {
             if (sensorData == null || sensorData.isEmpty()) {
                 return ResponseEntity.status(404).body(Maps.of("error", "没有可用的传感器数据"));
             }
-            SensorData record = SensorData.of(sensorData, LocalDateTime.now(ZoneOffset.UTC));
+            SensorData record = SensorData.of(sensorData, LocalDateTime.now());
             sensorDataRepository.insert(record);
             return ResponseEntity.ok(record.toMap());
         } catch (Exception e) {
@@ -92,7 +92,7 @@ public class RootController {
             Map<String, Double> sensorData = deviceManager.getSensorData();
             if (sensorData != null && !sensorData.isEmpty()) {
                 try {
-                    sensorDataRepository.insert(SensorData.of(sensorData, LocalDateTime.now(ZoneOffset.UTC)));
+                    sensorDataRepository.insert(SensorData.of(sensorData, LocalDateTime.now()));
                 } catch (Exception e) {
                     log.warn("保存传感器数据失败: {}", e.getMessage());
                 }
@@ -130,10 +130,10 @@ public class RootController {
             LocalDateTime start = HistoryController.parseDateTime(startTime);
             LocalDateTime end = HistoryController.parseDateTime(endTime);
             if (start == null) {
-                start = LocalDateTime.now(ZoneOffset.UTC).minusDays(7);
+                start = LocalDateTime.now().minusDays(7);
             }
             if (end == null) {
-                end = LocalDateTime.now(ZoneOffset.UTC);
+                end = LocalDateTime.now();
             }
 
             List<SensorData> records = sensorDataRepository.findBetweenDesc(start, end);

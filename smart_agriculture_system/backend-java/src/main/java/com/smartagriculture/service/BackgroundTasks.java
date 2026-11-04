@@ -99,7 +99,7 @@ public class BackgroundTasks {
                     log.warn("未获取到传感器数据，跳过本次采集");
                     continue;
                 }
-                SensorData record = SensorData.of(sensorData, LocalDateTime.now(ZoneOffset.UTC));
+                SensorData record = SensorData.of(sensorData, LocalDateTime.now());
                 sensorDataRepository.insert(record);
                 log.info("已保存传感器数据: 温度={}°C, 湿度={}%",
                         record.air_temperature, record.air_humidity);
