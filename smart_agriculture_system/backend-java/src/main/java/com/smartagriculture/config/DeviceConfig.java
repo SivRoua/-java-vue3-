@@ -12,8 +12,16 @@ public final class DeviceConfig {
     public record Device(String type, String name, String description, int relayAddress, int relayPort) {
     }
 
-    public static final String CONTROLLER_IP = "192.168.12.1";
-    public static final int CONTROLLER_PORT = 4000;
+    public static final String CONTROLLER_IP = AppEnv.get("WSN_HOST", "192.168.12.1");
+    public static final int CONTROLLER_PORT = parseInt(AppEnv.get("WSN_PORT", "4000"), 4000);
+
+    private static int parseInt(String value, int defaultValue) {
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
 
     public static final Map<String, Device> DEVICES;
 

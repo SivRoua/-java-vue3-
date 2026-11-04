@@ -14,6 +14,9 @@
 /物联网应用系统设计课程设计.docx
 /第9组基于Python及Vue的智能农业管理系统.docx
 
+# ===== 本地硬件模拟器（仅演示用，不入库） =====
+smart_agriculture_system/kv_wsn/wsn_simulator.py
+
 # ===== 历史备份与失败试验目录 =====
 /备份/
 /失败/
