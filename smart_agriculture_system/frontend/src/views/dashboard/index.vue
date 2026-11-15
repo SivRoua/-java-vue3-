@@ -96,7 +96,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, reactive, nextTick } from 'vue'
+import { ref, computed, onMounted, onActivated, onDeactivated, onUnmounted, reactive, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import VChart from 'vue-echarts'
@@ -207,7 +207,7 @@ const refreshTempChart = async () => {
             type: 'line',
             data: trendData.temperatures,
             smooth: true,
-            showSymbol: false,
+            showSymbol: trendData.temperatures.filter(Number.isFinite).length === 1,
             lineStyle: {
               width: 3,
               shadowColor: 'rgba(0, 0, 0, 0.2)',
@@ -236,7 +236,7 @@ const refreshTempChart = async () => {
             yAxisIndex: 1,
             data: trendData.humidities,
             smooth: true,
-            showSymbol: false,
+            showSymbol: trendData.humidities.filter(Number.isFinite).length === 1,
             lineStyle: {
               width: 3,
               shadowColor: 'rgba(0, 0, 0, 0.2)',
@@ -276,7 +276,10 @@ const refreshTempChart = async () => {
 }
 
 // 加载仪表盘数据
+let dashboardRequestRunning = false
 const loadDashboardData = async () => {
+  if (dashboardRequestRunning) return
+  dashboardRequestRunning = true
   loading.value = true
   
   // 分开加载不同部分的数据，防止一个数据加载失败影响整体
@@ -315,7 +318,7 @@ const loadDashboardData = async () => {
           tableLoading.value = true
           setTimeout(() => {
             recentAlerts.value = dashboardData.alerts
-            alertCount.value = dashboardData.alerts.filter(alert => alert.status === '未处理').length
+            if (Number.isFinite(dashboardData.alertCount)) alertCount.value = dashboardData.alertCount
             tableLoading.value = false
           }, 300)
         }
@@ -346,7 +349,7 @@ const loadDashboardData = async () => {
                 type: 'line',
                 data: trendData.temperatures,
                 smooth: true,
-                showSymbol: false,
+                showSymbol: trendData.temperatures.filter(Number.isFinite).length === 1,
                 lineStyle: {
                   width: 3,
                   shadowColor: 'rgba(0, 0, 0, 0.2)',
@@ -375,7 +378,7 @@ const loadDashboardData = async () => {
                 yAxisIndex: 1,
                 data: trendData.humidities,
                 smooth: true,
-                showSymbol: false,
+                showSymbol: trendData.humidities.filter(Number.isFinite).length === 1,
                 lineStyle: {
                   width: 3,
                   shadowColor: 'rgba(0, 0, 0, 0.2)',
@@ -401,11 +404,14 @@ const loadDashboardData = async () => {
             ]
           }
           
-          // 计算趋势
+          // 缺失时段不能当作0参与涨跌幅，也不保留上一次的趋势。
+          temperatureTrend.value = undefined
+          humidityTrend.value = undefined
           if (trendData.temperatures && trendData.temperatures.length > 1) {
             const lastIndex = trendData.temperatures.length - 1
             const prevIndex = lastIndex - 1
             const calcTrend = (series) => {
+              if (series?.[prevIndex] == null || series?.[lastIndex] == null) return undefined
               const prev = Number(series?.[prevIndex])
               const last = Number(series?.[lastIndex])
               if (!Number.isFinite(prev) || !Number.isFinite(last) || prev === 0) return undefined
@@ -425,30 +431,25 @@ const loadDashboardData = async () => {
   
   // 等待所有任务完成
   await Promise.allSettled(promises)
+  dashboardRequestRunning = false
   loading.value = false
 }
 
-// 页面加载时获取数据
+// 缓存页面只在可见时轮询，挂载与激活共用同一个定时器。
 let refreshInterval = null
-
-onMounted(() => {
-  // 使用nextTick确保DOM已完全渲染
-  nextTick(() => {
-    loadDashboardData()
-    // 设置定时刷新，每30秒刷新一次
-    refreshInterval = setInterval(() => {
-      loadDashboardData()
-    }, 30000)
-  })
-})
-
-// 组件卸载时清除定时器，避免重复轮询
-onUnmounted(() => {
-  if (refreshInterval) {
-    clearInterval(refreshInterval)
-    refreshInterval = null
-  }
-})
+const startRefresh = () => {
+  if (refreshInterval !== null) return
+  loadDashboardData()
+  refreshInterval = setInterval(loadDashboardData, 30000)
+}
+const stopRefresh = () => {
+  clearInterval(refreshInterval)
+  refreshInterval = null
+}
+onMounted(startRefresh)
+onActivated(startRefresh)
+onDeactivated(stopRefresh)
+onUnmounted(stopRefresh)
 
 // 获取警报状态对应的标签类型
 const getAlertStatusType = (status) => {

@@ -1,6 +1,7 @@
 package com.smartagriculture.controller;
 
 import com.smartagriculture.model.ThresholdSetting;
+import com.smartagriculture.util.SensorKeys;
 import com.smartagriculture.repository.OperationLogRepository;
 import com.smartagriculture.repository.ThresholdSettingRepository;
 import com.smartagriculture.service.AutoControlService;
@@ -31,7 +32,7 @@ public class AlertController {
     private static final Logger log = LoggerFactory.getLogger(AlertController.class);
 
     private static final List<String> VALID_TYPES = List.of(
-            "temperature", "humidity", "soil_moisture", "soil_temperature", "light_intensity", "co2_level");
+            "air_temperature", "air_humidity", "soil_moisture", "soil_temperature", "light_intensity", "co2_concentration");
     private static final List<String> VALID_OPERATORS = List.of(">", "<", ">=", "<=", "==");
 
     private final OperationLogRepository operationLogRepository;
@@ -147,7 +148,7 @@ public class AlertController {
                 return ResponseEntity.badRequest().body(Maps.of("error",
                         "无效的操作符，支持的操作符: " + String.join(", ", VALID_OPERATORS)));
             }
-            String type = String.valueOf(data.get("type"));
+            String type = SensorKeys.canonical(String.valueOf(data.get("type")));
             if (!VALID_TYPES.contains(type)) {
                 return ResponseEntity.badRequest().body(Maps.of("error",
                         "无效的监测类型，支持的类型: " + String.join(", ", VALID_TYPES)));
@@ -186,7 +187,7 @@ public class AlertController {
                 rule.name = String.valueOf(data.get("name"));
             }
             if (data.containsKey("type")) {
-                String type = String.valueOf(data.get("type"));
+                String type = SensorKeys.canonical(String.valueOf(data.get("type")));
                 if (!VALID_TYPES.contains(type)) {
                     return ResponseEntity.badRequest().body(Maps.of("error",
                             "无效的监测类型，支持的类型: " + String.join(", ", VALID_TYPES)));
