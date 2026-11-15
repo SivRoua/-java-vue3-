@@ -1,6 +1,7 @@
 package com.smartagriculture.service;
 
 import com.smartagriculture.model.OperationLog;
+import com.smartagriculture.util.SensorKeys;
 import com.smartagriculture.model.ThresholdSetting;
 import com.smartagriculture.repository.OperationLogRepository;
 import com.smartagriculture.repository.SensorDataRepository;
@@ -44,13 +45,19 @@ public class MonitorService {
     }
 
     private void checkSingleThreshold(ThresholdSetting setting, Map<String, Double> sensorData) {
-        Double value = sensorData.get(setting.type);
-        if (value == null) {
+        Double value = sensorData.get(SensorKeys.canonical(setting.type));
+        if (value == null || !Double.isFinite(value)) {
             return;
         }
         double threshold = setting.threshold != null ? setting.threshold : 0.0;
-        boolean triggered = ">".equals(setting.operator) ? value > threshold
-                : "<".equals(setting.operator) && value < threshold;
+        boolean triggered = switch (setting.operator) {
+            case ">" -> value > threshold;
+            case "<" -> value < threshold;
+            case ">=" -> value >= threshold;
+            case "<=" -> value <= threshold;
+            case "==" -> value == threshold;
+            default -> false;
+        };
         if (!triggered) {
             return;
         }

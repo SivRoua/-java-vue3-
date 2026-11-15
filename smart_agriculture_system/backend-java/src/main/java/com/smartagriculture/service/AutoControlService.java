@@ -2,6 +2,7 @@ package com.smartagriculture.service;
 
 import com.smartagriculture.device.DeviceManager;
 import com.smartagriculture.model.OperationLog;
+import com.smartagriculture.util.SensorKeys;
 import com.smartagriculture.repository.OperationLogRepository;
 import com.smartagriculture.util.Maps;
 import org.slf4j.Logger;
@@ -76,7 +77,15 @@ public class AutoControlService {
      * 处理告警并执行匹配的自动控制规则。
      */
     public boolean handleAlert(String thresholdType, double value) {
-        List<Map<String, Object>> rules = controlRules.get(thresholdType);
+        if (thresholdType == null || !Double.isFinite(value)) return false;
+        String ruleKey = switch (SensorKeys.canonical(thresholdType)) {
+            case "air_temperature" -> "temperature";
+            case "air_humidity" -> "humidity";
+            case "light_intensity" -> "light";
+            case "co2_concentration" -> "co2";
+            default -> thresholdType;
+        };
+        List<Map<String, Object>> rules = controlRules.get(ruleKey);
         if (rules == null || rules.isEmpty()) {
             log.warn("未找到 {} 的控制规则", thresholdType);
             return false;
@@ -96,7 +105,7 @@ public class AutoControlService {
             log.info("{} - 设备 {} 执行 {} 操作: {}", description, deviceType, action,
                     success ? "成功" : "失败");
             logAutoControl(deviceType, description + "，操作结果: " + (success ? "成功" : "失败"), success);
-            return true;
+            return success;
         }
         return false;
     }

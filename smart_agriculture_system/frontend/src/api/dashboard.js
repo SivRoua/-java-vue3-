@@ -20,13 +20,15 @@ export function getDashboardData() {
     getSensorData(),
     getDeviceStatus(),
     getAlerts(),
-    getConnectionStatus()
-  ]).then(([sensorResult, deviceResult, alertResult, connectionResult]) => {
+    getConnectionStatus(),
+    request({ url: '/api/alerts/count', method: 'get' })
+  ]).then(([sensorResult, deviceResult, alertResult, connectionResult, countResult]) => {
     const pick = (result, fallback) => (result.status === 'fulfilled' && result.value !== undefined ? result.value : fallback)
     return {
       sensorData: pick(sensorResult, null),
       deviceStatus: pick(deviceResult, { devices: [] }),
       alerts: ensureArray(pick(alertResult, [])),
+      alertCount: countResult.status === 'fulfilled' ? countResult.value?.count : null,
       connectionStatus: pick(connectionResult, null)
     }
   })
@@ -52,50 +54,28 @@ export function getTempHumidityTrend() {
       return { times: [], temperatures: [], humidities: [] }
     }
     
-    // 将24小时数据分为8个时间点
-    const timePoints = 8
-    const timeInterval = 24 / timePoints
-    const now = new Date()
-    const times = []
-    const temperatures = []
-    const humidities = []
-    
-    // 创建时间点
-    for (let i = 0; i < timePoints; i++) {
-      const time = new Date(now.getTime() - (timePoints - i - 1) * timeInterval * 60 * 60 * 1000)
-      times.push(time.getHours().toString().padStart(2, '0') + ':00')
-    }
-    
-    // 对每个时间点，找到最接近的数据
-    for (let i = 0; i < timePoints; i++) {
-      const targetTime = new Date(now.getTime() - (timePoints - i - 1) * timeInterval * 60 * 60 * 1000)
-      
-      // 找到最接近目标时间的数据点
-      let closestData = null
-      let minTimeDiff = Infinity
-      
-      for (const record of data) {
-        if (!record || !record.timestamp) continue;
-        
-        try {
-          const recordTime = new Date(record.timestamp)
-          const timeDiff = Math.abs(recordTime.getTime() - targetTime.getTime())
-          
-          if (timeDiff < minTimeDiff) {
-            minTimeDiff = timeDiff
-            closestData = record
-          }
-        } catch (e) {
-          console.error('处理记录时间出错:', e, record);
-          continue;
-        }
+    // 保留8点的现有图表布局；按真实的3小时时段聚合，空时段保留缺口。
+    const end = Date.now()
+    const interval = 3 * 60 * 60 * 1000
+    const start = end - 8 * interval
+    const times = [], temperatures = [], humidities = []
+    const numeric = value => value == null || value === '' || !Number.isFinite(Number(value)) ? null : Number(value)
+    for (let i = 0; i < 8; i++) {
+      const left = start + i * interval, right = left + interval
+      const time = new Date(right)
+      times.push(`${String(time.getHours()).padStart(2, '0')}:${String(time.getMinutes()).padStart(2, '0')}`)
+      const records = data.filter(record => {
+        const timestamp = new Date(record?.timestamp).getTime()
+        return timestamp >= left && (timestamp < right || (i === 7 && timestamp === right))
+      })
+      const average = (key, alias) => {
+        const values = records.map(record => numeric(record[key] ?? record[alias])).filter(value => value !== null)
+        return values.length ? Number((values.reduce((a, b) => a + b, 0) / values.length).toFixed(1)) : null
       }
-      
-      // 添加数据，如果没有找到则使用默认值
-      temperatures.push(closestData ? parseFloat(closestData.air_temperature || closestData.temperature || 25) : 25)
-      humidities.push(closestData ? parseFloat(closestData.air_humidity || closestData.humidity || 60) : 60)
+      temperatures.push(average('air_temperature', 'temperature'))
+      humidities.push(average('air_humidity', 'humidity'))
     }
-    
+
     return { times, temperatures, humidities }
   }).catch(error => {
     console.error('获取温湿度趋势数据失败:', error)
