@@ -41,7 +41,7 @@ public class HistoryController {
             @RequestParam(name = "metric", required = false) String metric) {
         try {
             LocalDateTime start = startDate != null ? parseDateTime(startDate) : LocalDateTime.now().minusDays(1);
-            LocalDateTime end = endDate != null ? parseDateTime(endDate) : LocalDateTime.now();
+            LocalDateTime end = endDate != null ? parseEndDateTime(endDate) : LocalDateTime.now();
             if (start == null) {
                 start = LocalDateTime.now().minusDays(1);
             }
@@ -105,7 +105,7 @@ public class HistoryController {
             @RequestParam(name = "page_size", defaultValue = "20") int pageSize) {
         try {
             LocalDateTime start = startTime != null ? parseDateTime(startTime) : LocalDateTime.now().minusDays(7);
-            LocalDateTime end = endTime != null ? parseDateTime(endTime) : LocalDateTime.now();
+            LocalDateTime end = endTime != null ? parseEndDateTime(endTime) : LocalDateTime.now();
             if (start == null) {
                 start = LocalDateTime.now().minusDays(7);
             }
@@ -146,6 +146,12 @@ public class HistoryController {
     /**
      * 兼容前端 ISO 时间格式，统一转换为 UTC 本地时间。
      */
+    static LocalDateTime parseEndDateTime(String value) {
+        LocalDateTime parsed = parseDateTime(value);
+        return parsed != null && value.trim().length() == 10
+                ? parsed.plusDays(1).minusNanos(1) : parsed;
+    }
+
     static LocalDateTime parseDateTime(String value) {
         if (value == null || value.isBlank()) {
             return null;

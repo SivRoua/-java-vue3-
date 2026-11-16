@@ -65,15 +65,15 @@ public class AutoControlController {
             Map<String, double[]> newThresholds = new LinkedHashMap<>();
             for (Map.Entry<?, ?> entry : source.entrySet()) {
                 if (!(entry.getValue() instanceof Map<?, ?> range)) {
-                    continue;
+                    return ResponseEntity.badRequest().body(Maps.of("error", "阈值格式无效"));
                 }
                 Object min = range.get("min");
                 Object max = range.get("max");
                 if (min == null || max == null) {
-                    continue;
+                    return ResponseEntity.badRequest().body(Maps.of("error", "阈值必须包含最小值和最大值"));
                 }
                 newThresholds.put(String.valueOf(entry.getKey()), new double[]{
-                        toDouble(min, 0.0), toDouble(max, 0.0)
+                        toDouble(min, Double.NaN), toDouble(max, Double.NaN)
                 });
             }
             if (newThresholds.isEmpty()) {

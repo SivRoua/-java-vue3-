@@ -119,7 +119,7 @@ const reduceResult = ref(null);
 const apiList = [
   { name: '历史数据', path: '/api/history/data' },
   { name: '历史数据(兼容)', path: '/api/history' },
-  { name: '传感器数据', path: '/api/sensor/data' },
+  { name: '传感器数据', path: '/api/sensor-data' },
   { name: '设备状态', path: '/api/device/status' },
 ];
 
@@ -141,7 +141,7 @@ const fetchData = async () => {
   reduceResult.value = null;
   
   try {
-    const resp = await axios.get(`http://localhost:5000${selectedApi.value}`);
+    const resp = await axios.get(`${(import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')}${selectedApi.value}`);
     console.log('API响应:', resp);
     
     response.value = resp.data;

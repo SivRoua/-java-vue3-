@@ -25,20 +25,24 @@ public class MonitorService {
     private final SensorDataRepository sensorDataRepository;
     private final ThresholdSettingRepository thresholdSettingRepository;
     private final OperationLogRepository operationLogRepository;
-    private final AutoControlService autoControlService;
 
     public MonitorService(SensorDataRepository sensorDataRepository,
                           ThresholdSettingRepository thresholdSettingRepository,
-                          OperationLogRepository operationLogRepository,
-                          AutoControlService autoControlService) {
+                          OperationLogRepository operationLogRepository) {
         this.sensorDataRepository = sensorDataRepository;
         this.thresholdSettingRepository = thresholdSettingRepository;
         this.operationLogRepository = operationLogRepository;
-        this.autoControlService = autoControlService;
     }
 
-    public void checkThresholds(Map<String, Double> sensorData) {
+    private final java.util.Set<String> activeAlerts = new java.util.HashSet<>();
+
+    private static String alertKey(ThresholdSetting rule) {
+        return rule.id + ":" + rule.name + ":" + rule.type + ":" + rule.operator + ":" + rule.threshold;
+    }
+
+    public synchronized void checkThresholds(Map<String, Double> sensorData) {
         List<ThresholdSetting> settings = thresholdSettingRepository.findEnabled();
+        activeAlerts.retainAll(settings.stream().map(MonitorService::alertKey).collect(java.util.stream.Collectors.toSet()));
         for (ThresholdSetting setting : settings) {
             checkSingleThreshold(setting, sensorData);
         }
@@ -58,9 +62,12 @@ public class MonitorService {
             case "==" -> value == threshold;
             default -> false;
         };
+        String key = alertKey(setting);
         if (!triggered) {
+            activeAlerts.remove(key);
             return;
         }
+        if (activeAlerts.contains(key)) return;
         log.warn("触发阈值告警: {} 当前值 {} {} 阈值 {}", setting.name, value, setting.operator, threshold);
         try {
             OperationLog logEntry = new OperationLog();
@@ -71,9 +78,10 @@ public class MonitorService {
             logEntry.description = setting.name + ": " + setting.type + " 当前值 " + value
                     + " " + setting.operator + " 阈值 " + threshold;
             operationLogRepository.insert(logEntry);
+            activeAlerts.add(key);
         } catch (Exception e) {
             log.error("记录告警日志失败: {}", e.getMessage());
         }
-        autoControlService.handleAlert(setting.type, value);
+        // 告警只记录和通知；设备动作由独立控制器统一判断。
     }
 }

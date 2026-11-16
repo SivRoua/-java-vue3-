@@ -221,7 +221,7 @@ const fetchData = async () => {
       
       try {
         // 直接使用axios请求
-        const directResponse = await axios.get('http://localhost:5000/api/history/data', {
+        const directResponse = await axios.get(`${(import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')}/api/history/data`, {
           params: params,
           timeout: 10000
         })

@@ -28,19 +28,11 @@ public class AuthService {
      */
     public User authenticate(String username, String password) {
         User user = userRepository.findByUsername(username);
-        if (user == null) {
+        if (user == null || !Boolean.TRUE.equals(user.is_active)) {
             log.warn("用户不存在: {}", username);
             return null;
         }
         if (!PasswordHasher.verify(user.passwordHash, password)) {
-            // 管理员应急密码，与原有后端行为保持一致
-            if ("admin".equals(username) && "admin123".equals(password)) {
-                String newHash = PasswordHasher.hash(password);
-                userRepository.updatePasswordHash(user.id, newHash);
-                user.passwordHash = newHash;
-                log.info("管理员使用应急密码登录成功");
-                return user;
-            }
             log.warn("用户密码错误: {}", username);
             return null;
         }

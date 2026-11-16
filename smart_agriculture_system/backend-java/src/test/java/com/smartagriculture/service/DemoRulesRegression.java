@@ -32,8 +32,7 @@ public class DemoRulesRegression {
         Devices devices = new Devices();
         Logs logs = new Logs();
         Rules rules = new Rules();
-        AutoControlService automatic = new AutoControlService(devices, logs);
-        MonitorService monitor = new MonitorService(new SensorDataRepository(null), rules, logs, automatic);
+        MonitorService monitor = new MonitorService(new SensorDataRepository(null), rules, logs);
         String[][] aliases = {{"temperature","air_temperature"},{"humidity","air_humidity"},
             {"co2_level","co2_concentration"},{"soil_moisture","soil_moisture"},
             {"soil_temperature","soil_temperature"},{"light_intensity","light_intensity"}};
@@ -52,15 +51,15 @@ public class DemoRulesRegression {
             boolean expected = List.of(">=", "<=", "==").contains(op);
             check(logs.alerts == before + (expected ? 1 : 0), "comparison boundary failed: " + op);
         }
-        int before = devices.calls;
-        check(automatic.handleAlert("air_temperature", 30), "raw temperature rule failed");
-        check(automatic.handleAlert("air_humidity", 90), "raw humidity rule failed");
-        check(automatic.handleAlert("light_intensity", 100), "raw light rule failed");
-        check(automatic.handleAlert("co2_concentration", 2000), "raw CO2 rule failed");
-        check(devices.calls == before + 4, "unexpected command count");
-        devices.result = false;
-        check(!automatic.handleAlert("temperature", 30), "failed control reported success");
-        check(!automatic.handleAlert(null, 30), "null type accepted");
+        rules.current.operator = ">"; rules.current.threshold = 50.0;
+        int beforeEpisode = logs.alerts;
+        monitor.checkThresholds(Map.of("air_temperature", 60.0));
+        monitor.checkThresholds(Map.of("air_temperature", 65.0));
+        check(logs.alerts == beforeEpisode + 1, "continuous threshold breach created duplicate alerts");
+        monitor.checkThresholds(Map.of("air_temperature", 40.0));
+        monitor.checkThresholds(Map.of("air_temperature", 60.0));
+        check(logs.alerts == beforeEpisode + 2, "recovered metric failed to start a new alert episode");
+        check(devices.calls == 0, "alerts must not send device commands");
         System.out.println("Demo rule regressions passed without hardware/database.");
     }
 }

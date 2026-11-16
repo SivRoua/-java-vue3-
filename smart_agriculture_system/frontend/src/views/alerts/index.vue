@@ -367,7 +367,7 @@ const liveRules = computed(() => {
     const triggered = Boolean(rule.enabled)
       && value !== null
       && !Number.isNaN(threshold)
-      && (rule.operator === '>' ? value > threshold : value < threshold)
+      && ({ '>': value > threshold, '<': value < threshold, '>=': value >= threshold, '<=': value <= threshold, '==': value === threshold }[rule.operator] ?? false)
     return { ...rule, currentValue: value, triggered }
   })
 })
