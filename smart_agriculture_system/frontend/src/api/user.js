@@ -108,7 +108,7 @@ export function createUser(data) {
       email: data.email,
       password: data.password,
       role: data.role || 'user',
-      is_active: data.status !== false
+      is_active: data.is_active !== false
     },
     headers: {
       'Authorization': `Bearer ${token}`

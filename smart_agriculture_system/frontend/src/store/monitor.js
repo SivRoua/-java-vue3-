@@ -39,6 +39,8 @@ export const useMonitorStore = defineStore('monitor', {
     },
     historyData: [],
     lastUpdateTime: null,
+    now: Date.now(),
+    freshnessInterval: null,
     loading: false,
     error: null,
     updateInterval: null,
@@ -61,12 +63,14 @@ export const useMonitorStore = defineStore('monitor', {
     // 数据是否新鲜（15 秒内有更新）
     isFresh: (state) => {
       if (!state.lastUpdateTime) return false
-      return Date.now() - new Date(state.lastUpdateTime).getTime() < 15000
+      const age = state.now - new Date(state.lastUpdateTime).getTime()
+      return !state.error && state.source !== 'database' && age >= 0 && age < 15000
     },
     // 数据来源的中文描述
     sourceLabel: (state) => {
       if (state.source === 'realtime') return '虚拟仿真平台'
-      if (state.source === 'database' || state.source === 'cache') return '数据库缓存'
+      if (state.source === 'database') return '数据库缓存'
+      if (state.source === 'cache') return '采样缓存'
       return state.source ? state.source : '未获取'
     }
   },
@@ -104,7 +108,8 @@ export const useMonitorStore = defineStore('monitor', {
         console.log("接收到的传感器数据:", sensorData)
         console.log("处理后的显示数据:", this.realTimeData)
         
-        this.lastUpdateTime = new Date()
+        this.lastUpdateTime = response.timestamp || sensorData.timestamp || null
+        this.now = Date.now()
         this.source = response.source || ''
         this.error = null
       } catch (error) {
@@ -164,9 +169,15 @@ export const useMonitorStore = defineStore('monitor', {
       }
     },
 
+    startFreshnessClock() {
+      this.now = Date.now()
+      if (!this.freshnessInterval) this.freshnessInterval = setInterval(() => { this.now = Date.now() }, 1000)
+    },
+
     startRealTimeUpdate(interval = 10000) {  // 设定轮询间隔为10秒
       // 先清除可能存在的定时器
       this.stopRealTimeUpdate()
+      this.startFreshnessClock()
       
       // 立即获取一次数据
       this.fetchRealTimeData()
@@ -183,6 +194,7 @@ export const useMonitorStore = defineStore('monitor', {
      */
     acquireRealtime(interval = 5000) {
       this.subscribers += 1
+      this.startFreshnessClock()
       if (this.updateInterval) {
         return
       }
@@ -203,6 +215,8 @@ export const useMonitorStore = defineStore('monitor', {
     },
 
     stopRealTimeUpdate() {
+      clearInterval(this.freshnessInterval)
+      this.freshnessInterval = null
       if (this.updateInterval) {
         clearInterval(this.updateInterval)
         this.updateInterval = null

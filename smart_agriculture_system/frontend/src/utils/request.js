@@ -23,7 +23,7 @@ function safelyProcessResponse(response) {
     // 检查是否有标准的data字段
     if (response.data !== undefined) {
       // 如果data是数组，可能是图表数据，直接返回数组
-      if (Array.isArray(response.data)) {
+      if (Array.isArray(response.data) && !response.meta) {
         return response.data;
       }
       // 其他情况返回完整对象

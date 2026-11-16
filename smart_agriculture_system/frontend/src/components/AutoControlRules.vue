@@ -4,9 +4,11 @@
       <template #header>
         <div class="card-header">
           <span>自动控制规则</span>
-          <el-button type="primary" size="small" @click="refreshRules">
-            <i class="el-icon-refresh"></i> 刷新
-          </el-button>
+          <div class="rule-actions">
+            <el-switch :model-value="enabled" :loading="toggling" :disabled="loading" active-text="自动控制" @change="toggleControl" />
+            <el-button size="small" :disabled="loading" @click="openThresholds">阈值设置</el-button>
+            <el-button type="primary" size="small" @click="refreshRules">刷新</el-button>
+          </div>
         </div>
       </template>
       
@@ -73,6 +75,20 @@
         </el-table-column>
       </el-table>
     </el-card>
+    <el-dialog v-model="thresholdDialog" title="自动控制阈值" width="480px">
+      <el-form label-width="100px">
+        <el-form-item v-for="(range, key) in thresholdDraft" :key="key" :label="getSensorTypeName(key)">
+          <el-input-number v-model="range.min" :controls="false" style="width:120px" />
+          <span style="margin:0 10px">至</span>
+          <el-input-number v-model="range.max" :controls="false" style="width:120px" />
+          <span style="margin-left:8px">{{ getSensorUnit(key) }}</span>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="thresholdDialog = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="saveThresholds">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -80,7 +96,44 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getAutoControlRules, getAutoControlLogs } from '@/api/alerts'
+import { getAutoControlStatus, enableAutoControl, disableAutoControl, updateThresholds } from '@/api/auto-control'
 
+const enabled = ref(false)
+const toggling = ref(false)
+const thresholds = ref({})
+const thresholdDraft = ref({})
+const thresholdDialog = ref(false)
+const saving = ref(false)
+const toggleControl = async value => {
+  if (toggling.value) return
+  toggling.value = true
+  try {
+    const result = await (value ? enableAutoControl() : disableAutoControl())
+    if (!result.success) throw Error(result.error)
+    enabled.value = result.enabled
+    ElMessage.success(result.message)
+  } catch (error) { ElMessage.error(error.message || '切换失败') }
+  finally { toggling.value = false }
+}
+const openThresholds = () => {
+  thresholdDraft.value = JSON.parse(JSON.stringify(thresholds.value))
+  thresholdDialog.value = true
+}
+const saveThresholds = async () => {
+  if (Object.values(thresholdDraft.value).some(r => !Number.isFinite(r.min) || !Number.isFinite(r.max) || r.min >= r.max)) {
+    ElMessage.warning('每项最小值必须小于最大值')
+    return
+  }
+  saving.value = true
+  try {
+    const result = await updateThresholds(thresholdDraft.value)
+    if (!result.success) throw Error(result.error)
+    thresholdDialog.value = false
+    await refreshRules()
+    ElMessage.success('阈值已更新')
+  } catch (error) { ElMessage.error(error.message || '保存失败') }
+  finally { saving.value = false }
+}
 const rules = ref([])
 const logs = ref([])
 const loading = ref(false)
@@ -90,8 +143,11 @@ const logsLoading = ref(false)
 const refreshRules = async () => {
   loading.value = true
   try {
-    const response = await getAutoControlRules()
+    const [response, status] = await Promise.all([getAutoControlRules(), getAutoControlStatus()])
+    if (status.error) throw Error(status.error)
     rules.value = response
+    enabled.value = status.enabled
+    thresholds.value = status.thresholds
   } catch (error) {
     console.error('获取自动控制规则失败:', error)
     ElMessage.error('获取自动控制规则失败')
@@ -121,6 +177,8 @@ const getSensorTypeName = (type) => {
     'humidity': '湿度',
     'soil_moisture': '土壤湿度',
     'soil_temperature': '土壤温度',
+    'light': '光照强度',
+    'co2': 'CO2浓度',
     'light_intensity': '光照强度',
     'co2_concentration': 'CO2浓度',
     'co2_level': 'CO2浓度'
@@ -167,6 +225,8 @@ const getSensorUnit = (type) => {
     'humidity': '%',
     'soil_moisture': '%',
     'soil_temperature': '°C',
+    'light': 'lux',
+    'co2': 'ppm',
     'light_intensity': 'lux',
     'co2_concentration': 'ppm',
     'co2_level': 'ppm'
@@ -192,6 +252,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.rule-actions { display:flex; align-items:center; gap:12px; }
 .auto-control-rules {
   margin-bottom: 20px;
 }

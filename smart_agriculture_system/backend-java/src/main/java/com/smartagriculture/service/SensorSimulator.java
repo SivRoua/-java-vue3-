@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public final class SensorSimulator {
 
-    private static final boolean ENABLED = parseEnabled(AppEnv.get("SENSOR_SIMULATE", "true"));
+    private static final boolean ENABLED = parseEnabled(AppEnv.get("SENSOR_SIMULATE", "false"));
 
     /** 温度日振幅（±℃） */
     private static final double TEMP_AMPLITUDE = 3.2;

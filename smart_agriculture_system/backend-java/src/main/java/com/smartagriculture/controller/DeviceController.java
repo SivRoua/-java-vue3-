@@ -192,6 +192,7 @@ public class DeviceController {
     public ResponseEntity<Map<String, Object>> getPublicSensorData() {
         try {
             Map<String, Double> realtimeData = null;
+            DeviceManager.SensorSnapshot snapshot = null;
             String connectionError = null;
             try {
                 if (!deviceManager.getWsnClient().isConnected()) {
@@ -199,7 +200,8 @@ public class DeviceController {
                     deviceManager.requestConnectAsync();
                 }
                 if (deviceManager.getWsnClient().isConnected()) {
-                    realtimeData = deviceManager.getSensorData();
+                    snapshot = deviceManager.getSensorSnapshot();
+                    realtimeData = snapshot.data();
                     if (realtimeData != null && !realtimeData.isEmpty()) {
                         // 落库统一交给 BackgroundTasks 的定时采样（默认 2 分钟一条），
                         // 这里只读不写，否则每个页面轮询都会插一条重复记录，历史表几秒一行
@@ -228,19 +230,7 @@ public class DeviceController {
                         }
                         return ResponseEntity.ok(result);
                     }
-                    log.warn("数据库中没有传感器数据，返回默认值");
-                    Map<String, Double> defaultData = new LinkedHashMap<>();
-                    defaultData.put("air_temperature", 0.0);
-                    defaultData.put("air_humidity", 0.0);
-                    defaultData.put("soil_temperature", 0.0);
-                    defaultData.put("soil_moisture", 0.0);
-                    defaultData.put("light_intensity", 0.0);
-                    defaultData.put("co2_concentration", 0.0);
-                    return ResponseEntity.ok(Maps.of(
-                            "data", defaultData,
-                            "source", "default",
-                            "connection_error", connectionError != null ? connectionError : "无可用数据"
-                    ));
+                    return ResponseEntity.status(503).body(Maps.of("error", "没有可用的传感器数据"));
                 } catch (Exception dbError) {
                     log.error("从数据库获取传感器数据失败: {}", dbError.getMessage());
                     return ResponseEntity.status(500).body(Maps.of(
@@ -250,11 +240,11 @@ public class DeviceController {
                 }
             }
 
-            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime now = snapshot.timestamp();
             Map<String, Double> displayData = SensorSimulator.apply(realtimeData, now);
             return ResponseEntity.ok(Maps.of(
                     "data", displayData,
-                    "source", "realtime",
+                    "source", snapshot.source(),
                     "timestamp", now.toString()
             ));
         } catch (Exception e) {

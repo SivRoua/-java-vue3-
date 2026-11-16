@@ -18,7 +18,7 @@ export function getSensorData() {
       
       // 如果失败，尝试直接使用axios
       try {
-        const directResponse = await axios.get('http://localhost:5000/api/sensor-data', {
+        const directResponse = await axios.get(`${(import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')}/api/sensor-data`, {
           timeout: 10000
         });
         resolve(directResponse.data);

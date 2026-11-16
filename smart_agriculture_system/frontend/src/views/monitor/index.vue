@@ -375,8 +375,8 @@ const fetchHistoryData = async () => {
     
     if (response && response.data) {
       // 后端返回的是分页数据
-      monitorStore.historyData = response.data.items || []
-      total.value = response.data.total || 0
+      monitorStore.historyData = Array.isArray(response.data) ? response.data : (response.data.items || [])
+      total.value = response.meta?.total ?? response.data.total ?? 0
     } else if (response && Array.isArray(response)) {
       // 后端直接返回了数组
       monitorStore.historyData = response

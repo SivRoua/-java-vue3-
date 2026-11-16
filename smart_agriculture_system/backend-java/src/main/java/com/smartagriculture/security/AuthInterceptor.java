@@ -38,7 +38,10 @@ public class AuthInterceptor implements HandlerInterceptor {
         String path = request.getRequestURI();
         String method = request.getMethod().toUpperCase();
         boolean adminPath = path.startsWith("/api/users");
-        boolean authRequired = adminPath
+        boolean authRequired = (path.startsWith("/api/device/") && !"GET".equals(method))
+                || path.startsWith("/api/auto-control/")
+                || (path.startsWith("/api/alerts/handle/") && !"GET".equals(method))
+                || adminPath
                 || "/api/auth/profile".equals(path)
                 || "/api/auth/refresh".equals(path)
                 || (path.startsWith("/api/alerts/rules")
@@ -78,6 +81,10 @@ public class AuthInterceptor implements HandlerInterceptor {
             return writeError(response, 401, "Token无效");
         }
 
+        User authenticatedUser = payload.userId != null ? userRepository.findById(payload.userId) : null;
+        if (authenticatedUser == null || !Boolean.TRUE.equals(authenticatedUser.is_active)) {
+            return writeError(response, 401, "账号不存在或已禁用");
+        }
         if (adminPath) {
             if (payload.userId == null) {
                 return writeError(response, 401, "Invalid token, missing user_id");

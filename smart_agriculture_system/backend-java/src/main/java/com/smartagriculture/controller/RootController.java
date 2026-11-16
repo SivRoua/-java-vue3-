@@ -95,14 +95,15 @@ public class RootController {
             if (!deviceManager.getWsnClient().isConnected()) {
                 deviceManager.requestConnectAsync();
             }
-            Map<String, Double> sensorData = deviceManager.getSensorData();
+            DeviceManager.SensorSnapshot snapshot = deviceManager.getSensorSnapshot();
+            Map<String, Double> sensorData = snapshot.data();
             if (sensorData != null && !sensorData.isEmpty()) {
                 // 落库由 BackgroundTasks 定时采样负责，这里只读不写
-                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime sampledAt = snapshot.timestamp();
                 return ResponseEntity.ok(Maps.of(
-                        "data", SensorSimulator.apply(sensorData, now),
-                        "source", "realtime",
-                        "timestamp", now.toString()
+                        "data", SensorSimulator.apply(sensorData, sampledAt),
+                        "source", snapshot.source(),
+                        "timestamp", sampledAt.toString()
                 ));
             }
             SensorData latest = sensorDataRepository.findLatest();
@@ -135,7 +136,7 @@ public class RootController {
             @RequestParam(name = "metric", required = false) String metric) {
         try {
             LocalDateTime start = HistoryController.parseDateTime(startTime);
-            LocalDateTime end = HistoryController.parseDateTime(endTime);
+            LocalDateTime end = HistoryController.parseEndDateTime(endTime);
             if (start == null) {
                 start = LocalDateTime.now().minusDays(7);
             }
@@ -148,13 +149,15 @@ public class RootController {
             csv.append("时间戳,空气温度(°C),空气湿度(%),土壤温度(°C),土壤湿度(%),光照强度(lux),CO2浓度(ppm)\r\n");
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             for (SensorData record : records) {
+                Map<String, Object> display = record.toMap();
+                SensorSimulator.applyRow(display, record.timestamp);
                 csv.append(record.timestamp != null ? formatter.format(record.timestamp) : "").append(',');
-                csv.append(formatDecimal(record.air_temperature)).append(',');
-                csv.append(formatDecimal(record.air_humidity)).append(',');
-                csv.append(formatDecimal(record.soil_temperature)).append(',');
-                csv.append(formatDecimal(record.soil_moisture)).append(',');
-                csv.append(record.light_intensity != null ? String.valueOf((int) record.light_intensity.doubleValue()) : "").append(',');
-                csv.append(record.co2_concentration != null ? String.valueOf((int) record.co2_concentration.doubleValue()) : "").append("\r\n");
+                csv.append(formatDecimal(display.get("air_temperature"))).append(',');
+                csv.append(formatDecimal(display.get("air_humidity"))).append(',');
+                csv.append(formatDecimal(display.get("soil_temperature"))).append(',');
+                csv.append(formatDecimal(display.get("soil_moisture"))).append(',');
+                csv.append(display.get("light_intensity") instanceof Number n ? String.valueOf(n.intValue()) : "").append(',');
+                csv.append(display.get("co2_concentration") instanceof Number n ? String.valueOf(n.intValue()) : "").append("\r\n");
             }
 
             String filename = "sensor_data_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".csv";
@@ -171,7 +174,7 @@ public class RootController {
         }
     }
 
-    private static String formatDecimal(Double value) {
-        return value != null ? String.format("%.1f", value) : "";
+    private static String formatDecimal(Object value) {
+        return value instanceof Number number ? String.format(java.util.Locale.ROOT, "%.1f", number.doubleValue()) : "";
     }
 }

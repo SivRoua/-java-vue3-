@@ -16,6 +16,7 @@ public class AutoControlManager {
     private static final Logger log = LoggerFactory.getLogger(AutoControlManager.class);
 
     private final DeviceManager deviceManager;
+    private final com.smartagriculture.repository.OperationLogRepository logs;
 
     private final Map<String, double[]> thresholds = new LinkedHashMap<>();
     private final Map<String, String> deviceMapping = new LinkedHashMap<>();
@@ -23,8 +24,9 @@ public class AutoControlManager {
     private volatile boolean running = false;
     private Thread controlThread;
 
-    public AutoControlManager(DeviceManager deviceManager) {
+    public AutoControlManager(DeviceManager deviceManager, com.smartagriculture.repository.OperationLogRepository logs) {
         this.deviceManager = deviceManager;
+        this.logs = logs;
 
         thresholds.put("temperature", new double[]{15, 30});
         thresholds.put("humidity", new double[]{40, 80});
@@ -82,16 +84,18 @@ public class AutoControlManager {
             return false;
         }
         for (Map.Entry<String, double[]> entry : newThresholds.entrySet()) {
-            if (entry.getValue() == null || entry.getValue().length < 2) {
-                continue;
+            if (!thresholds.containsKey(entry.getKey()) || entry.getValue() == null || entry.getValue().length != 2) {
+                return false;
             }
             double min = entry.getValue()[0];
             double max = entry.getValue()[1];
-            if (min >= max) {
+            if (!Double.isFinite(min) || !Double.isFinite(max) || min >= max) {
                 log.warn("阈值设置无效: {} 最小值 {} 大于等于最大值 {}", entry.getKey(), min, max);
-                continue;
+                return false;
             }
-            thresholds.put(entry.getKey(), new double[]{min, max});
+        }
+        for (Map.Entry<String, double[]> entry : newThresholds.entrySet()) {
+            thresholds.put(entry.getKey(), entry.getValue().clone());
         }
         log.info("阈值设置已更新: {}", thresholds.keySet());
         return true;
@@ -104,9 +108,10 @@ public class AutoControlManager {
                     log.info("自动控制：设备未连接，尝试重新连接");
                     deviceManager.connect();
                 }
-                Map<String, Double> sensorData = deviceManager.getSensorData();
+                DeviceManager.SensorSnapshot snapshot = deviceManager.getSensorSnapshot();
+                Map<String, Double> sensorData = snapshot.data();
                 if (!sensorData.isEmpty()) {
-                    checkThresholds(sensorData);
+                    checkThresholds(com.smartagriculture.service.SensorSimulator.apply(sensorData, snapshot.timestamp()));
                 }
             } catch (Exception e) {
                 log.error("自动控制执行失败: {}", e.getMessage());
@@ -120,41 +125,45 @@ public class AutoControlManager {
         }
     }
 
+    public synchronized Map<String, java.util.List<Map<String, Object>>> getControlRules() {
+        Map<String, java.util.List<Map<String, Object>>> result = new LinkedHashMap<>();
+        thresholds.forEach((sensor, range) -> {
+            String lowAction = "light".equals(sensor) ? "open" : "close";
+            String highAction = "light".equals(sensor) ? "close" : "open";
+            result.put(sensor, java.util.List.of(
+                    Map.of("threshold_operator", "<", "threshold_value", range[0], "device_type", deviceMapping.get(sensor), "action", lowAction),
+                    Map.of("threshold_operator", ">", "threshold_value", range[1], "device_type", deviceMapping.get(sensor), "action", highAction)));
+        });
+        return result;
+    }
+
     private synchronized void checkThresholds(Map<String, Double> sensorData) {
-        Double temperature = sensorData.get("air_temperature");
-        if (temperature != null) {
-            double[] range = thresholds.get("temperature");
-            if (range != null && (temperature < range[0] || temperature > range[1])) {
-                String action = temperature > range[1] ? "open" : "close";
-                deviceManager.controlDevice(deviceMapping.get("temperature"), action);
+        if (!running) return;
+        Map<String, String> keys = Map.of("temperature", "air_temperature", "humidity", "air_humidity",
+                "light", "light_intensity", "co2", "co2_concentration");
+        getControlRules().forEach((sensor, rules) -> {
+            Double value = sensorData.get(keys.get(sensor));
+            if (value == null || !Double.isFinite(value)) return;
+            for (Map<String, Object> rule : rules) {
+                double threshold = ((Number) rule.get("threshold_value")).doubleValue();
+                boolean matched = "<".equals(rule.get("threshold_operator")) ? value < threshold : value > threshold;
+                if (!matched) continue;
+                String type = (String) rule.get("device_type"), action = (String) rule.get("action");
+                Map<String, Object> status = deviceManager.getDeviceStatus(type);
+                int target = "open".equals(action) ? 1 : 0;
+                if (status != null && Integer.valueOf(target).equals(status.get("status"))) continue;
+                boolean success = false;
+                try { success = deviceManager.controlDevice(type, action); }
+                catch (Exception e) { log.error("自动控制失败: {}", e.getMessage()); }
+                com.smartagriculture.model.OperationLog entry = new com.smartagriculture.model.OperationLog();
+                entry.operation_type = "自动控制";
+                entry.device_type = type;
+                entry.operation_time = java.time.LocalDateTime.now();
+                entry.operation_result = success;
+                entry.description = sensor + "=" + value + "，执行 " + type + " " + action;
+                try { logs.insert(entry); }
+                catch (Exception e) { log.error("记录自动控制日志失败: {}", e.getMessage()); }
             }
-        }
-
-        Double humidity = sensorData.get("air_humidity");
-        if (humidity != null) {
-            double[] range = thresholds.get("humidity");
-            if (range != null && (humidity < range[0] || humidity > range[1])) {
-                String action = humidity > range[1] ? "open" : "close";
-                deviceManager.controlDevice(deviceMapping.get("humidity"), action);
-            }
-        }
-
-        Double light = sensorData.get("light_intensity");
-        if (light != null) {
-            double[] range = thresholds.get("light");
-            if (range != null && (light < range[0] || light > range[1])) {
-                String action = light < range[0] ? "open" : "close";
-                deviceManager.controlDevice(deviceMapping.get("light"), action);
-            }
-        }
-
-        Double co2 = sensorData.get("co2_concentration");
-        if (co2 != null) {
-            double[] range = thresholds.get("co2");
-            if (range != null && (co2 < range[0] || co2 > range[1])) {
-                String action = co2 > range[1] ? "open" : "close";
-                deviceManager.controlDevice(deviceMapping.get("co2"), action);
-            }
-        }
+        });
     }
 }

@@ -99,10 +99,12 @@ public class BackgroundTasks {
     }
 
     private void monitorLoop() {
+        LocalDateTime lastSavedSample = null;
         while (true) {
             sleep(sampleIntervalMs());
             try {
-                Map<String, Double> sensorData = deviceManager.getSensorData();
+                DeviceManager.SensorSnapshot snapshot = deviceManager.getSensorSnapshot();
+                Map<String, Double> sensorData = snapshot.data();
                 if (sensorData == null || sensorData.isEmpty()) {
                     log.warn("未获取到传感器数据，跳过本次采集");
                     continue;
@@ -112,8 +114,10 @@ public class BackgroundTasks {
                     log.warn("传感器读数为占位值(全 0)，跳过本次采集");
                     continue;
                 }
-                SensorData record = SensorData.of(sensorData, LocalDateTime.now());
+                if (snapshot.timestamp() == null || snapshot.timestamp().equals(lastSavedSample)) continue;
+                SensorData record = SensorData.of(sensorData, snapshot.timestamp());
                 sensorDataRepository.insert(record);
+                lastSavedSample = snapshot.timestamp();
                 log.info("已保存传感器数据: 温度={}°C, 湿度={}%",
                         record.air_temperature, record.air_humidity);
                 // 阈值判断用与页面展示一致的波动后数值，避免"显示已超限却不报警"

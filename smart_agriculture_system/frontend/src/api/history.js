@@ -165,7 +165,7 @@ export function getHistoryData(params = {}) {
         
         // 如果失败，尝试直接使用axios
         try {
-          const directResponse = await axios.get('http://localhost:5000/api/history/data', {
+          const directResponse = await axios.get(`${(import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')}/api/history/data`, {
             params: safeParams,
             timeout: 15000 // 增加超时时间
           });
@@ -190,7 +190,7 @@ export function getHistoryData(params = {}) {
           
           // 最后尝试使用备用接口
           try {
-            const backupResponse = await axios.get('http://localhost:5000/api/history', {
+            const backupResponse = await axios.get(`${(import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')}/api/history`, {
               params: safeParams,
               timeout: 15000 // 增加超时时间
             });
@@ -259,7 +259,7 @@ export function getStatistics(params) {
       resolve(response);
     } catch (error) {
       try {
-        const directResponse = await axios.get('http://localhost:5000/api/history', {
+        const directResponse = await axios.get(`${(import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')}/api/history`, {
           params,
           timeout: 8000  // 减少超时时间
         });
@@ -297,7 +297,7 @@ export function exportData(params) {
       resolve(response);
     } catch (error) {
       try {
-        const directResponse = await axios.get('http://localhost:5000/api/history/data', {
+        const directResponse = await axios.get(`${(import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')}/api/history/data`, {
           params,
           responseType: 'blob',
           timeout: 15000

@@ -26,6 +26,15 @@ public class DeviceManager {
     private final Object statusLock = new Object();
     private Map<String, Double> cachedSensorData;
     private long lastSensorUpdate = 0;
+    private boolean sensorFromCache;
+    public record SensorSnapshot(Map<String, Double> data, java.time.LocalDateTime timestamp, String source) {}
+
+    public synchronized SensorSnapshot getSensorSnapshot() {
+        Map<String, Double> data = getSensorData();
+        java.time.LocalDateTime timestamp = lastSensorUpdate == 0 ? null
+                : java.time.LocalDateTime.ofInstant(java.time.Instant.ofEpochSecond(lastSensorUpdate), java.time.ZoneId.systemDefault());
+        return new SensorSnapshot(data, timestamp, sensorFromCache ? "cache" : "realtime");
+    }
     private final long sensorCacheSeconds = 110;
 
     /** 异步连接线程：负责在后台尝试连接，避免 HTTP 请求线程被 TCP 超时拖住。 */
@@ -177,22 +186,27 @@ public class DeviceManager {
      */
     public Map<String, Double> getSensorData() {
         if (!wsnClient.isConnected()) {
-            if (cachedSensorData != null && !isPlaceholder(cachedSensorData)) {
-                return new LinkedHashMap<>(cachedSensorData);
-            }
+            // Offline readings must not be recorded or controlled as new samples.
             // 返回空 map：调用方据此回退到数据库最新值，而不是把全 0 当成真实读数
             return new LinkedHashMap<>();
         }
         synchronized (this) {
             long now = System.currentTimeMillis() / 1000;
             if (cachedSensorData != null && now - lastSensorUpdate < sensorCacheSeconds) {
+                sensorFromCache = true;
                 log.info("使用缓存的传感器数据");
                 return new LinkedHashMap<>(cachedSensorData);
             }
             Map<String, Double> raw = wsnClient.getSensorData();
-            Map<String, Double> processed = processSensorData(raw);
+            if (raw == null || raw.isEmpty() || isPlaceholder(raw)
+                    || raw.get("air_temperature") == null || raw.get("air_humidity") == null
+                    || raw.values().stream().anyMatch(v -> v == null || !Double.isFinite(v))) {
+                return new LinkedHashMap<>();
+            }
+            sensorFromCache = false;
+            Map<String, Double> processed = new LinkedHashMap<>(raw);
             cachedSensorData = new LinkedHashMap<>(processed);
-            lastSensorUpdate = now;
+            lastSensorUpdate = System.currentTimeMillis() / 1000;
             return processed;
         }
     }
@@ -202,25 +216,6 @@ public class DeviceManager {
         Double temperature = data.get("air_temperature");
         Double humidity = data.get("air_humidity");
         return temperature != null && humidity != null && temperature == 0.0 && humidity == 0.0;
-    }
-
-    private Map<String, Double> processSensorData(Map<String, Double> raw) {
-        Map<String, Double> processed = new LinkedHashMap<>();
-        processed.put("air_temperature", 0.0);
-        processed.put("air_humidity", 0.0);
-        processed.put("soil_temperature", 0.0);
-        processed.put("soil_moisture", 0.0);
-        processed.put("light_intensity", 0.0);
-        processed.put("co2_concentration", 0.0);
-        if (raw != null) {
-            for (Map.Entry<String, Double> entry : raw.entrySet()) {
-                if (entry.getKey().startsWith("_")) {
-                    continue;
-                }
-                processed.put(entry.getKey(), entry.getValue());
-            }
-        }
-        return processed;
     }
 
     public Map<String, Map<String, Object>> getDeviceStatus() {

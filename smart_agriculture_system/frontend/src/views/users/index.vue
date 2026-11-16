@@ -23,7 +23,7 @@
     <el-card class="table-container">
       <el-table
         v-loading="loading"
-        :data="filteredUsers"
+        :data="paginatedUsers"
         style="width: 100%"
         border
       >
@@ -76,7 +76,7 @@
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
           :page-sizes="[10, 20, 50, 100]"
-          :total="total"
+          :total="filteredUsers.length"
           layout="total, sizes, prev, pager, next, jumper"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
@@ -126,7 +126,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/user'
@@ -182,6 +182,14 @@ const filteredUsers = computed(() => {
       user.username.toLowerCase().includes(query) ||
       user.email.toLowerCase().includes(query)
   )
+})
+
+const paginatedUsers = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return filteredUsers.value.slice(start, start + pageSize.value)
+})
+watch(() => filteredUsers.value.length, length => {
+  currentPage.value = Math.min(currentPage.value, Math.max(1, Math.ceil(length / pageSize.value)))
 })
 
 // 权限检查函数
