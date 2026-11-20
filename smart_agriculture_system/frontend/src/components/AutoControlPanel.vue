@@ -317,7 +317,7 @@ const updateCO2Threshold = (values) => updateThreshold('co2_concentration', valu
   align-items: center;
   margin-bottom: 15px;
   font-weight: bold;
-  color: #409eff;
+  color: #2fa98d;
 }
 
 .threshold-header i {

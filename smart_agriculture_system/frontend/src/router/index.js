@@ -94,7 +94,7 @@ const router = createRouter({
 // 简化路由守卫逻辑，避免过多的异步操作
 router.beforeEach((to, from, next) => {
   // 设置页面标题
-  document.title = to.meta.title ? `${to.meta.title} - 智能农业监控系统` : '智能农业监控系统'
+  document.title = to.meta.title ? `${to.meta.title} - 智能温室数字孪生与微气候测控平台` : '智能温室数字孪生与微气候测控平台'
   
   console.log(`路由跳转: ${from.path} -> ${to.path}`)
   

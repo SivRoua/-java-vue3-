@@ -213,7 +213,7 @@ const display = (metric) => {
 }
 
 .rt-humidity .rt-num {
-  color: #409eff;
+  color: #2fa98d;
 }
 
 .rt-soil_temperature .rt-num {

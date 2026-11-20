@@ -3,16 +3,16 @@
     <el-aside width="200px" class="aside">
       <div class="logo">
         <img src="@/assets/logo.png" alt="Logo">
-        <span>智能农业系统</span>
+        <span>智能温室数字孪生与微气候测控平台</span>
       </div>
       <el-menu
         :default-active="activeMenu"
         class="menu"
         :collapse="isCollapse"
         @select="handleSelect"
-        background-color="#304156"
-        text-color="#bfcbd9"
-        active-text-color="#409EFF"
+        background-color="#263b36"
+        text-color="#b8ccc6"
+        active-text-color="#2fa98d"
       >
         <el-menu-item index="/dashboard">
           <el-icon><Monitor /></el-icon>
@@ -132,7 +132,7 @@ const handleCommand = async (command) => {
 }
 
 .aside {
-  background-color: #304156;
+  background-color: #263b36;
   transition: width 0.3s;
   overflow-x: hidden;
 }
@@ -176,7 +176,7 @@ const handleCommand = async (command) => {
   font-size: 20px;
   cursor: pointer;
   &:hover {
-    color: #409EFF;
+    color: #2fa98d;
   }
 }
 
@@ -204,7 +204,7 @@ const handleCommand = async (command) => {
   border-radius: 4px;
   
   &:hover {
-    background: #f5f7fa;
+    background: #f5f9f7;
   }
   
   .username {
@@ -214,7 +214,7 @@ const handleCommand = async (command) => {
 }
 
 .main {
-  background: #f0f2f5;
+  background: #f2f7f5;
   padding: 16px;
 }
 

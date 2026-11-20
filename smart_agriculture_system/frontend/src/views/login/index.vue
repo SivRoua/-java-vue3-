@@ -3,7 +3,7 @@
     <div class="login-card">
       <div class="login-header">
         <img src="@/assets/logo.svg" alt="Logo" class="logo">
-        <h2>智能农业监控系统</h2>
+        <h2>智能温室数字孪生与微气候测控平台</h2>
       </div>
       
       <div class="tabs">
@@ -383,7 +383,9 @@ const handleRegister = async () => {
   h2 {
     margin: 0;
     color: #303133;
-    font-size: 20px;
+    font-size: 18px;
+    line-height: 1.4;
+    letter-spacing: 0.3px;
   }
 }
 
@@ -404,7 +406,7 @@ const handleRegister = async () => {
   position: relative;
   
   &.active {
-    color: #409eff;
+    color: #2fa98d;
     font-weight: 500;
     
     &:after {
@@ -415,12 +417,12 @@ const handleRegister = async () => {
       transform: translateX(-50%);
       width: 50%;
       height: 2px;
-      background-color: #409eff;
+      background-color: #2fa98d;
     }
   }
   
   &:hover {
-    color: #409eff;
+    color: #2fa98d;
   }
 }
 
@@ -455,7 +457,7 @@ const handleRegister = async () => {
 
     &:focus {
       outline: none;
-      border-color: #409eff;
+      border-color: #2fa98d;
     }
 
     &::placeholder {
@@ -499,7 +501,7 @@ const handleRegister = async () => {
 .login-button {
   width: 100%;
   height: 40px;
-  background-color: #409eff;
+  background-color: #2fa98d;
   border: none;
   border-radius: 4px;
   color: white;
@@ -512,7 +514,7 @@ const handleRegister = async () => {
   }
 
   &:disabled {
-    background-color: #a0cfff;
+    background-color: #c1e5dd;
     cursor: not-allowed;
   }
 }

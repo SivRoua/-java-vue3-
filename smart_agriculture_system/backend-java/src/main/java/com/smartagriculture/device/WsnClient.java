@@ -216,7 +216,8 @@ public class WsnClient {
         try {
             byte[] command = {(byte) 0xA5, 0x00, 0x00, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, 0x5A};
             drainInputBuffer();
-            socket.setSoTimeout(1500);
+            // 网关正常时回帧在 100ms 内到达，800ms 足够；过长会让控制请求排队等待
+            socket.setSoTimeout(800);
             socket.getOutputStream().write(command);
             socket.getOutputStream().flush();
             lastCommunicationTime = nowIso();
@@ -224,7 +225,7 @@ public class WsnClient {
             byte[] data = new byte[0];
             byte[] buffer = new byte[1024];
             long start = System.currentTimeMillis();
-            while (System.currentTimeMillis() - start < 1500) {
+            while (System.currentTimeMillis() - start < 800) {
                 try {
                     int read = socket.getInputStream().read(buffer);
                     if (read <= 0) {
@@ -293,7 +294,8 @@ public class WsnClient {
             log.info("发送继电器控制命令: {}", hex(command));
 
             drainInputBuffer();
-            socket.setSoTimeout(5000);
+            // 继电器板回帧通常 <100ms，2 秒未回应即视为网关无响应，避免前端长时间转圈
+            socket.setSoTimeout(2000);
             socket.getOutputStream().write(command);
             socket.getOutputStream().flush();
             lastCommunicationTime = nowIso();
@@ -307,8 +309,10 @@ public class WsnClient {
                 log.info("命令执行成功: {} {}", deviceType, action);
                 return true;
             } catch (SocketTimeoutException e) {
-                log.warn("设备 {} 控制命令响应超时，但命令可能已执行", deviceType);
-                return true;
+                // 网关没有回帧说明指令未被确认执行，必须如实返回失败，
+                // 否则页面提示"操作成功"而设备纹丝不动，反而更难排查。
+                log.warn("设备 {} 控制命令无响应（网关未回帧），本次控制未确认", deviceType);
+                return false;
             }
         } catch (Exception e) {
             log.error("控制设备失败: {}", e.getMessage());
@@ -348,6 +352,23 @@ public class WsnClient {
         }
     }
 
+    /**
+     * 只读继电器缓存，不发起任何网络交互。
+     * 供批量刷新场景使用：先 syncRelayStatusFromHardware() 广播一次，
+     * 再对 8 个设备逐个读缓存，避免每个设备都发一遍广播、各等一个超时。
+     */
+    public synchronized Integer readCachedDeviceStatus(String deviceType) {
+        DeviceConfig.Device device = DeviceConfig.DEVICES.get(deviceType.toLowerCase());
+        if (device == null) {
+            return null;
+        }
+        int portIndex = device.relayPort() - 1;
+        if (portIndex < 0 || portIndex >= 4) {
+            return null;
+        }
+        return getCurrentRelayStatus(device.relayAddress())[portIndex];
+    }
+
     public synchronized Map<String, Double> getSensorData() {
         Map<String, Double> empty = new LinkedHashMap<>();
         if (!connected) {
@@ -360,12 +381,12 @@ public class WsnClient {
             socket.getOutputStream().write(command);
             socket.getOutputStream().flush();
             lastCommunicationTime = nowIso();
-            socket.setSoTimeout(10_000);
+            socket.setSoTimeout(3000);
 
             byte[] buffer = new byte[1024];
             byte[] all = new byte[0];
             long start = System.currentTimeMillis();
-            while (System.currentTimeMillis() - start < 10_000) {
+            while (System.currentTimeMillis() - start < 3000) {
                 try {
                     int read = socket.getInputStream().read(buffer);
                     if (read <= 0) {
@@ -458,8 +479,10 @@ public class WsnClient {
             connected = false;
             return false;
         } catch (SocketTimeoutException e) {
-            log.warn("Ping测试超时");
-            connected = false;
+            // 只超时不代表链路断开：TCP 仍保持，多半是仿真场景未运行。
+            // 这里若置 connected=false，前端每 5 秒轮询就会触发一轮完整重连，
+            // 而每轮重连要刷新 8 个设备状态并持锁，用户点控制就会被挤到十几秒后。
+            log.warn("Ping 无响应（连接保留，请确认仿真场景已启动）");
             return false;
         } catch (Exception e) {
             log.error("Ping测试失败: {}", e.getMessage());

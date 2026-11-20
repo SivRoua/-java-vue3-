@@ -1510,7 +1510,7 @@ window.addEventListener('resize', () => {
 }
 
 .chart-wrapper {
-  background: linear-gradient(to bottom, #ffffff, #f5f7fa);
+  background: linear-gradient(to bottom, #ffffff, #f5f9f7);
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);

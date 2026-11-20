@@ -3,7 +3,7 @@
     <el-card class="page-card">
       <template #header>
         <div class="card-header">
-          <span>智能农业自动控制系统</span>
+          <span>智能温室自动控制系统</span>
           <el-button type="primary" size="small" @click="refreshData">
             <i class="el-icon-refresh"></i> 刷新
           </el-button>
@@ -201,7 +201,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   padding: 5px 10px;
-  background-color: #f5f7fa;
+  background-color: #f5f9f7;
   border-radius: 4px;
 }
 
@@ -211,6 +211,6 @@ onUnmounted(() => {
 
 .sensor-value {
   font-weight: bold;
-  color: #409eff;
+  color: #2fa98d;
 }
 </style>

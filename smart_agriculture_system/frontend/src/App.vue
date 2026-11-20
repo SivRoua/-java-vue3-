@@ -90,7 +90,7 @@ html, body {
   font-family: 'Microsoft YaHei', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f5f7fa;
+  background-color: #f5f9f7;
   background-image: linear-gradient(to bottom, #f8f9fa, #e9ecef);
   text-rendering: optimizeLegibility;
 }

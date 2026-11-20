@@ -1,0 +1,65 @@
+/* ============================================================
+ * 主题色覆盖：松石绿（teal）
+ * 原主题为 Element Plus 默认蓝 #409EFF，此处整体迁移到
+ * 明度、饱和度相近的 #2fa98d，保持观感协调而色调不同。
+ * 必须在本文件之前引入 element-plus/dist/index.css，
+ * 否则 :root 变量会被官方样式覆盖。
+ * ============================================================ */
+
+:root {
+  --el-color-primary: #2fa98d;
+  --el-color-primary-rgb: 47, 169, 141;
+
+  /* 主色混白梯度，与 Element Plus 命名规则一致 */
+  --el-color-primary-light-3: #6dc2af;
+  --el-color-primary-light-5: #97d4c6;
+  --el-color-primary-light-7: #c1e5dd;
+  --el-color-primary-light-8: #d5eee8;
+  --el-color-primary-light-9: #eaf6f4;
+  --el-color-primary-dark-2: #268771;
+
+  /* 次级语义色做同色系微调，避免蓝色残留 */
+  --el-color-success: #52b788;
+  --el-color-success-light-3: #7dcba4;
+  --el-color-success-light-5: #a8dcc1;
+  --el-color-success-light-7: #d3edde;
+  --el-color-success-light-8: #e1f4e9;
+  --el-color-success-light-9: #f0f9f4;
+  --el-color-success-dark-2: #42926d;
+
+  /* 页面基底 */
+  --ag-bg-page: #f2f7f5;
+  --ag-bg-panel: #ffffff;
+  --ag-sidebar: #263b36;
+  --ag-sidebar-deep: #1f302c;
+  --ag-sidebar-text: #b8ccc6;
+  --ag-border: #e2ebe7;
+}
+
+/* 页面底色随之偏绿灰，避免与新主色冲突 */
+body {
+  background-color: var(--ag-bg-page);
+}
+
+/* 侧重主色的组件补一层保险，防止局部硬编码残留蓝色 */
+.el-button--primary:not(.is-plain):not(.is-text):not(.is-link) {
+  --el-button-bg-color: var(--el-color-primary);
+  --el-button-border-color: var(--el-color-primary);
+  --el-button-hover-bg-color: var(--el-color-primary-light-3);
+  --el-button-hover-border-color: var(--el-color-primary-light-3);
+  --el-button-active-bg-color: var(--el-color-primary-dark-2);
+  --el-button-active-border-color: var(--el-color-primary-dark-2);
+}
+
+.el-tag--primary {
+  --el-tag-bg-color: var(--el-color-primary-light-9);
+  --el-tag-border-color: var(--el-color-primary-light-8);
+  --el-tag-text-color: var(--el-color-primary);
+}
+
+/* 选中/激活态统一走新主色 */
+.el-menu-item.is-active,
+.el-radio-button.is-active .el-radio-button__inner,
+.el-tabs__item.is-active {
+  color: var(--el-color-primary);
+}

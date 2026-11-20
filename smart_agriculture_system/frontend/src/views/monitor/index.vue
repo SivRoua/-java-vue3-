@@ -299,7 +299,7 @@ const getSensorColor = (key) => {
     'light_intensity': '#9254de',
     'co2_level': '#1890ff'
   }
-  return colorMap[key] || '#409EFF'
+  return colorMap[key] || '#2fa98d'
 }
 
 // 获取传感器图标
@@ -325,20 +325,20 @@ const getSensorLabel = (key) => {
 const getSafeRgbValues = (hexColor) => {
   try {
     if (!hexColor || typeof hexColor !== 'string' || !hexColor.startsWith('#')) {
-      return '64, 158, 255'; // 默认蓝色
+      return '47, 169, 141'; // 默认蓝色
     }
     
     const hex = hexColor.replace(/^#/, '');
     const matches = hex.match(/../g);
     
     if (!matches || matches.length !== 3) {
-      return '64, 158, 255'; // 默认蓝色
+      return '47, 169, 141'; // 默认蓝色
     }
     
     return matches.map(h => parseInt(h, 16)).join(', ');
   } catch (error) {
     console.error('颜色转换错误:', error);
-    return '64, 158, 255'; // 默认蓝色
+    return '47, 169, 141'; // 默认蓝色
   }
 }
 
@@ -985,13 +985,13 @@ const handleExport = () => {
 
 @keyframes value-flash {
   0% {
-    background: rgba(64, 158, 255, 0.16);
-    box-shadow: 0 0 0 4px rgba(64, 158, 255, 0.14);
+    background: rgba(47, 169, 141, 0.16);
+    box-shadow: 0 0 0 4px rgba(47, 169, 141, 0.14);
     border-radius: 6px;
   }
   100% {
     background: transparent;
-    box-shadow: 0 0 0 0 rgba(64, 158, 255, 0);
+    box-shadow: 0 0 0 0 rgba(47, 169, 141, 0);
     border-radius: 6px;
   }
 }
@@ -1162,7 +1162,7 @@ const handleExport = () => {
       
       .el-icon {
         font-size: 32px;
-        color: #409EFF;
+        color: #2fa98d;
         margin-bottom: 10px;
       }
       
@@ -1245,7 +1245,7 @@ const handleExport = () => {
       }
       
       &.active {
-        background-color: #409EFF;
+        background-color: #2fa98d;
         color: white;
       }
     }
@@ -1255,11 +1255,11 @@ const handleExport = () => {
 /* 表格行样式增强 */
 .el-table {
   tr:nth-child(even) {
-    background-color: rgba(64, 158, 255, 0.02);
+    background-color: rgba(47, 169, 141, 0.02);
   }
   
   tr:hover td {
-    background-color: rgba(64, 158, 255, 0.08) !important;
+    background-color: rgba(47, 169, 141, 0.08) !important;
   }
   
   .cell {
@@ -1267,7 +1267,7 @@ const handleExport = () => {
   }
   
   th {
-    background: linear-gradient(to bottom, #f5f7fa, #ebeef5) !important;
+    background: linear-gradient(to bottom, #f5f9f7, #ebeef5) !important;
     
     .cell {
       font-weight: 700;

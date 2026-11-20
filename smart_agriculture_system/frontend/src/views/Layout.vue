@@ -4,16 +4,16 @@
     <el-aside :width="isCollapse ? '64px' : '200px'" class="sidebar-container">
       <div class="logo">
         <img src="@/assets/logo.svg" alt="Logo" class="logo-image">
-        <span v-show="!isCollapse" class="logo-text">智能农业监控系统</span>
+        <span v-show="!isCollapse" class="logo-text">智能温室数字孪生与微气候测控平台</span>
       </div>
       <el-menu
         :default-active="route.path"
         class="el-menu-vertical"
         :router="true"
         :collapse="isCollapse"
-        background-color="#304156"
-        text-color="#bfcbd9"
-        active-text-color="#409EFF">
+        background-color="#263b36"
+        text-color="#b8ccc6"
+        active-text-color="#2fa98d">
         <el-menu-item index="/dashboard" class="menu-item">
           <el-icon class="menu-icon"><Monitor /></el-icon>
           <span>控制面板</span>
@@ -55,7 +55,7 @@
         <div class="header-right">
           <el-dropdown trigger="click">
             <span class="user-info">
-              <el-avatar :size="32" :src="userStore.avatar" class="user-avatar" />
+              <el-avatar :size="32" :src="avatarSrc" class="user-avatar" />
               <span>{{ userStore.username }}</span>
             </span>
             <template #dropdown>
@@ -83,17 +83,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount } from 'vue'
+import { ref, computed, onMounted, onBeforeMount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import { useUserStore } from '@/store/user'
 import { getAvatarUrl } from '@/utils/common'
+import adminAvatar from '@/assets/avatar-admin.svg'
 import gsap from 'gsap'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+
+// 管理员统一使用线条人形头像；普通用户仍显示各自头像
+const avatarSrc = computed(() => (userStore.userRole === 'admin' ? adminAvatar : userStore.avatar))
 
 // 获取需要的图标组件
 const {
@@ -182,8 +186,8 @@ onMounted(() => {
   overflow: hidden;
 
   .sidebar-container {
-    background-color: #304156;
-    color: #bfcbd9;
+    background-color: #263b36;
+    color: #b8ccc6;
     transition: width 0.3s cubic-bezier(0.34, 0.69, 0.1, 1);
     overflow: hidden;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
@@ -197,7 +201,7 @@ onMounted(() => {
       display: flex;
       align-items: center;
       padding: 0 16px;
-      background-color: #2b3649;
+      background-color: #1f302c;
       overflow: hidden;
 
       .logo-image {
@@ -210,9 +214,12 @@ onMounted(() => {
 
       .logo-text {
         color: #fff;
-        font-size: 16px;
+        font-size: 12px;
         font-weight: 600;
-        white-space: nowrap;
+        line-height: 1.3;
+        letter-spacing: 0.2px;
+        white-space: normal;
+        max-width: 128px;
         transition: all 0.3s;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       }
@@ -244,7 +251,7 @@ onMounted(() => {
         top: 0;
         height: 100%;
         width: 4px;
-        background-color: #409EFF;
+        background-color: #2fa98d;
         transform: scaleY(0);
         transition: transform 0.3s;
       }
@@ -252,7 +259,7 @@ onMounted(() => {
       &:hover, &.is-active {
         .menu-icon {
           transform: translateZ(0);
-          filter: drop-shadow(0 2px 8px rgba(64, 158, 255, 0.5));
+          filter: drop-shadow(0 2px 8px rgba(47, 169, 141, 0.5));
         }
       }
       
@@ -306,6 +313,9 @@ onMounted(() => {
           .user-avatar {
             transition: all 0.3s;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            background-color: #f2f5f4;
+            border: 1px solid #dbe6e2;
           }
 
           span {
@@ -320,7 +330,7 @@ onMounted(() => {
             }
             
             span {
-              color: #409EFF;
+              color: #2fa98d;
             }
           }
         }
@@ -328,7 +338,7 @@ onMounted(() => {
     }
 
     .content-container {
-      background-color: #f0f2f5;
+      background-color: #f2f7f5;
       padding: 20px;
       overflow: auto;
       position: relative;

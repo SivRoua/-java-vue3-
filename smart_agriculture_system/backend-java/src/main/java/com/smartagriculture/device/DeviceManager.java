@@ -129,11 +129,15 @@ public class DeviceManager {
     }
 
     public synchronized void updateAllDeviceStatus() {
+        if (!wsnClient.isConnected()) {
+            return;
+        }
+        // 两块继电器板一次广播即可拿到全部通道状态。
+        // 原实现对 8 个设备各查一次，等于把同一份广播连发 8 遍、每遍各等一次超时（约 13 秒），
+        // 期间持有 WsnClient 锁，用户点控制要排队等它跑完，表现为"点一下等十几秒"。
+        wsnClient.syncRelayStatusFromHardware();
         for (String deviceType : DeviceConfig.DEVICES.keySet()) {
-            if (!wsnClient.isConnected()) {
-                continue;
-            }
-            Integer status = queryDeviceStatus(deviceType);
+            Integer status = wsnClient.readCachedDeviceStatus(deviceType);
             if (status == null) {
                 continue;
             }

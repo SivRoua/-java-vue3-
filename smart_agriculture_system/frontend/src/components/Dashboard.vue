@@ -339,7 +339,7 @@ onUnmounted(() => {
   align-items: center;
   padding: 8px;
   border-radius: 4px;
-  background: #f5f7fa;
+  background: #f5f9f7;
 }
 
 .device-info {

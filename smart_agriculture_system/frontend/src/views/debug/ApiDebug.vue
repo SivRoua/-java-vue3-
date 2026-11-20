@@ -220,7 +220,7 @@ onMounted(() => {
 }
 
 .response-data {
-  background-color: #f5f7fa;
+  background-color: #f5f9f7;
   padding: 10px;
   border-radius: 4px;
   overflow: auto;

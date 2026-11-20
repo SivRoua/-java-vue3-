@@ -2,7 +2,7 @@
   <div class="dashboard-container">
     <!-- 顶部操作-->
     <div class="dashboard-header">
-      <h2 class="dashboard-title">智能农业监控系统</h2>
+      <h2 class="dashboard-title">智能温室数字孪生与微气候测控平台</h2>
       <el-button type="primary" :loading="loading" @click="loadDashboardData" class="refresh-button">
         <el-icon class="refresh-icon"><Refresh /></el-icon> 刷新数据
       </el-button>
@@ -243,7 +243,7 @@ const refreshTempChart = async () => {
               shadowBlur: 10
             },
             itemStyle: {
-              color: '#409EFF'
+              color: '#2fa98d'
             },
             areaStyle: {
               color: {
@@ -253,8 +253,8 @@ const refreshTempChart = async () => {
                 x2: 0,
                 y2: 1,
                 colorStops: [
-                  { offset: 0, color: 'rgba(64, 158, 255, 0.5)' },
-                  { offset: 1, color: 'rgba(64, 158, 255, 0.1)' }
+                  { offset: 0, color: 'rgba(47, 169, 141, 0.5)' },
+                  { offset: 1, color: 'rgba(47, 169, 141, 0.1)' }
                 ]
               }
             }
@@ -385,7 +385,7 @@ const loadDashboardData = async () => {
                   shadowBlur: 10
                 },
                 itemStyle: {
-                  color: '#409EFF'
+                  color: '#2fa98d'
                 },
                 areaStyle: {
                   color: {
@@ -395,8 +395,8 @@ const loadDashboardData = async () => {
                     x2: 0,
                     y2: 1,
                     colorStops: [
-                      { offset: 0, color: 'rgba(64, 158, 255, 0.5)' },
-                      { offset: 1, color: 'rgba(64, 158, 255, 0.1)' }
+                      { offset: 0, color: 'rgba(47, 169, 141, 0.5)' },
+                      { offset: 1, color: 'rgba(47, 169, 141, 0.1)' }
                     ]
                   }
                 }
@@ -580,7 +580,7 @@ const tempHumidityChartOption = ref({
         shadowBlur: 10
       },
       itemStyle: {
-        color: '#409EFF'
+        color: '#2fa98d'
       },
       areaStyle: {
         color: {
@@ -590,8 +590,8 @@ const tempHumidityChartOption = ref({
           x2: 0,
           y2: 1,
           colorStops: [
-            { offset: 0, color: 'rgba(64, 158, 255, 0.5)' },
-            { offset: 1, color: 'rgba(64, 158, 255, 0.1)' }
+            { offset: 0, color: 'rgba(47, 169, 141, 0.5)' },
+            { offset: 1, color: 'rgba(47, 169, 141, 0.1)' }
           ]
         }
       }
@@ -705,7 +705,7 @@ const deviceStatusChartOption = computed(() => ({
       .card-icon {
         margin-right: 8px;
         font-size: 20px;
-        color: #409EFF;
+        color: #2fa98d;
         filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.15));
         transition: all 0.3s;
       }
@@ -805,7 +805,7 @@ const deviceStatusChartOption = computed(() => ({
         }
         
         &.humidity-alert {
-          color: #409EFF;
+          color: #2fa98d;
         }
         
         &.offline-alert {

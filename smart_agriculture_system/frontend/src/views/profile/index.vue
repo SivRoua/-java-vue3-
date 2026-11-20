@@ -2,7 +2,7 @@
   <div class="profile-container">
     <el-card v-loading="loading" shadow="hover">
       <div class="profile-header">
-        <el-avatar :size="72" :src="userStore.avatar" />
+        <el-avatar :size="72" :src="avatarSrc" />
         <div class="profile-title">
           <h2>{{ profile.username || '-' }}</h2>
           <el-tag :type="profile.role === 'admin' ? 'success' : 'info'" size="small">
@@ -27,12 +27,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/store/user'
 import { getUserProfile } from '@/api/user'
+import adminAvatar from '@/assets/avatar-admin.svg'
 
 const userStore = useUserStore()
+
+// 管理员统一使用线条人形头像，与顶栏保持一致
+const avatarSrc = computed(() => (userStore.userRole === 'admin' ? adminAvatar : userStore.avatar))
 const loading = ref(false)
 const profile = ref({})
 

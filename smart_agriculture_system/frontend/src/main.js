@@ -4,6 +4,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import '@/styles/index.css'  // 导入全局样式
+import '@/styles/theme.css'  // 主题色覆盖（松石绿），必须在 element-plus 之后
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
